@@ -1,6 +1,6 @@
 local paseto = {
   _VERSION     = 'paseto v0.1.0',
-  _DESCRIPTION = 'Lua implementation of PASETO (Platform-Agnostic Security Tokens)',
+  _DESCRIPTION = 'PASETO (Platform-Agnostic Security Tokens) for Lua',
   _URL         = 'https://github.com/peter-evans/paseto-lua',
   _LICENSE     = [[
     MIT License
