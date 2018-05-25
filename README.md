@@ -1,1 +1,1 @@
-# Lua implementation of PASETO (Platform-Agnostic Security Tokens)
+# PASETO (Platform-Agnostic Security Tokens) for Lua
