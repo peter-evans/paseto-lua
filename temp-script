@@ -1,2 +1,0 @@
-docker build . -t paseto-lua
-docker run -it -v $PWD:/paseto paseto-lua bash

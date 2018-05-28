@@ -11,3 +11,5 @@ RUN apt-get -y update \
  && luarocks install luacov
 
 WORKDIR /paseto
+
+CMD [ "./docker-cmd.sh" ]
