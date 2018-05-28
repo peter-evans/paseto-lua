@@ -27,8 +27,17 @@ local paseto = {
   ]]
 }
 
-function paseto.foo()
+local function bar()
     return "Hello World!"
+end
+
+function paseto.foo()
+    return bar()
+end
+
+function paseto.randombytes(n)
+	local nonce = require("luatweetnacl").randombytes(n)
+	return nonce
 end
 
 return paseto

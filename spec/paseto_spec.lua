@@ -10,4 +10,12 @@ describe("paseto", function()
 
     end)
 
+    describe("randombytes", function()
+
+        it("Returns a string of n random bytes", function()
+          assert.equal(string.len(paseto.randombytes(25)), 25)
+        end)
+
+    end)
+
 end)
