@@ -27,6 +27,7 @@ local v2protocol = {
   ]]
 }
 
+local HEADER = "v2"
 local SYMMETRIC_KEY_BYTES = 32
 
 function v2protocol.get_symmetric_key_byte_length()
@@ -40,6 +41,15 @@ end
 function v2protocol.generate_asymmetric_secret_key()
   local _, secret_key = require("luatweetnacl").sign_keypair()
   return secret_key
+end
+
+function v2protocol.encrypt(key, data)
+  aad = "\x50\x51\x52\x53\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7"
+  iv = "\x40\x41\x42\x43\x44\x45\x46\x47"
+  const = "\x07\x00\x00\x00"
+  exptag = "\x1a\xe1\x0b\x59\x4f\x09\xe2\x6a\x7e\x90\x2e\xcb\xd0\x60\x06\x91"
+  encr, tag = require("plc.aead_chacha_poly").encrypt(aad, key, iv, const, data)
+  return data
 end
 
 return v2protocol

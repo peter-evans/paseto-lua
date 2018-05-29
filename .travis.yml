@@ -19,6 +19,7 @@ install:
   - luarocks install luacov
   - luarocks install luacov-coveralls
   - luarocks install luatweetnacl
+  - luarocks install plc
 
 script:
   - luacheck --std max+busted *.lua spec

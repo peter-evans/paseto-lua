@@ -12,7 +12,8 @@ description = {
 }
 dependencies = {
    "lua >= 5.1",
-   "luatweetnacl >= 0.5"
+   "luatweetnacl >= 0.5",
+   "plc >= 0.5"
 }
 build = {
    type = "builtin",

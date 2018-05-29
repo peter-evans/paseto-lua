@@ -9,7 +9,8 @@ RUN apt-get -y update \
  && luarocks install busted \
  && luarocks install luacheck \
  && luarocks install luacov \
- && luarocks install luatweetnacl
+ && luarocks install luatweetnacl \
+ && luarocks install plc
 
 WORKDIR /paseto
 
