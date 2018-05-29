@@ -1,4 +1,4 @@
-local paseto = {
+local v2protocol = {
   _VERSION     = 'paseto v0.1.0',
   _DESCRIPTION = 'PASETO (Platform-Agnostic Security Tokens) for Lua',
   _URL         = 'https://github.com/peter-evans/paseto-lua',
@@ -27,8 +27,18 @@ local paseto = {
   ]]
 }
 
-function paseto.v2()
-  return require("v2protocol")
+local SYMMETRIC_KEY_BYTES = 32
+
+function v2protocol.get_symmetric_key_byte_length()
+  return SYMMETRIC_KEY_BYTES
 end
 
-return paseto
+function v2protocol.generate_symmetric_key()
+  return require("luatweetnacl").randombytes(SYMMETRIC_KEY_BYTES)
+end
+
+function v2protocol.foo()
+  return "Hello World!"
+end
+
+return v2protocol
