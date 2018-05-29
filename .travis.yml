@@ -18,6 +18,7 @@ install:
   - luarocks install busted
   - luarocks install luacov
   - luarocks install luacov-coveralls
+  - luarocks install luatweetnacl
 
 script:
   - luacheck --std max+busted *.lua spec
@@ -26,3 +27,4 @@ script:
 after_success:
   - EXCLUDE_DIR=`echo $TRAVIS_BUILD_DIR/lua_install | sed 's/-/%-/g'`
   - luacov-coveralls --exclude $EXCLUDE_DIR
+  

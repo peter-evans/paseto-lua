@@ -8,7 +8,8 @@ RUN apt-get -y update \
  && hererocks /lua_install -r^ --lua=5.3 \
  && luarocks install busted \
  && luarocks install luacheck \
- && luarocks install luacov
+ && luarocks install luacov \
+ && luarocks install luatweetnacl
 
 WORKDIR /paseto
 
