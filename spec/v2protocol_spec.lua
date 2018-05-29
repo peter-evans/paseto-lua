@@ -9,6 +9,11 @@ describe("v2 protocol", function()
       assert.equal(paseto.v2().get_symmetric_key_byte_length(), string.len(symmetric))
     end)
 
+    it("should generate an asymmetric key'", function()
+      local asymmetric = paseto.v2().generate_asymmetric_secret_key()
+      assert.equal(64, string.len(asymmetric))
+    end)
+
   end)
 
 end)

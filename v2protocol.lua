@@ -37,8 +37,9 @@ function v2protocol.generate_symmetric_key()
   return require("luatweetnacl").randombytes(SYMMETRIC_KEY_BYTES)
 end
 
-function v2protocol.foo()
-  return "Hello World!"
+function v2protocol.generate_asymmetric_secret_key()
+  local _, secret_key = require("luatweetnacl").sign_keypair()
+  return secret_key
 end
 
 return v2protocol
