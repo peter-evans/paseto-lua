@@ -29,6 +29,7 @@ local v2protocol = {
 
 local HEADER = "v2"
 local SYMMETRIC_KEY_BYTES = 32
+local CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES = 24
 
 function v2protocol.get_symmetric_key_byte_length()
   return SYMMETRIC_KEY_BYTES
@@ -43,13 +44,19 @@ function v2protocol.generate_asymmetric_secret_key()
   return secret_key
 end
 
-function v2protocol.encrypt(key, data)
-  aad = "\x50\x51\x52\x53\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7"
-  iv = "\x40\x41\x42\x43\x44\x45\x46\x47"
-  const = "\x07\x00\x00\x00"
-  exptag = "\x1a\xe1\x0b\x59\x4f\x09\xe2\x6a\x7e\x90\x2e\xcb\xd0\x60\x06\x91"
-  encr, tag = require("plc.aead_chacha_poly").encrypt(aad, key, iv, const, data)
-  return data
+function v2protocol.encrypt(key, payload)
+  local luanacha = require("luanacha")
+  -- build nonce
+  local nonce_key = luanacha.randombytes(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES)
+  local blake2b_ctx = luanacha.blake2b_init(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES, nonce_key)
+  luanacha.blake2b_update(blake2b_ctx, payload)
+  local nonce = luanacha.blake2b_final(blake2b_ctx)
+
+  -- TODO: build ad
+
+  local cipher = luanacha.lock(key, nonce, payload)
+
+  return nonce, cipher
 end
 
 return v2protocol
