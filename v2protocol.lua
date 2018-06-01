@@ -44,7 +44,8 @@ function v2protocol.generate_asymmetric_secret_key()
   return secret_key
 end
 
-function v2protocol.encrypt(key, payload)
+function v2protocol.encrypt(key, payload, footer)
+  footer = footer or ""
   local luanacha = require("luanacha")
   -- build nonce
   local nonce_key = luanacha.randombytes(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES)
@@ -53,8 +54,9 @@ function v2protocol.encrypt(key, payload)
   local nonce = luanacha.blake2b_final(blake2b_ctx)
 
   -- TODO: build ad
+  local associated_data = require("utils").pre_auth_encode(HEADER .. ".local." .. nonce .. footer)
 
-  local cipher = luanacha.lock(key, nonce, payload)
+  local cipher = luanacha.lock(key, nonce, payload, associated_data)
 
   return nonce, cipher
 end
