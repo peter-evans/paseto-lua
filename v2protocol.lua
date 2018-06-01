@@ -47,7 +47,7 @@ end
 local function aead_encrypt(key, payload, header, footer, nonce)
   local luanacha = require("luanacha")
   local utils = require("utils")
-  -- nonce
+
   if not nonce then
     local nonce_key = luanacha.randombytes(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES)
     local blake2b_ctx = luanacha.blake2b_init(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES, nonce_key)
@@ -62,9 +62,32 @@ local function aead_encrypt(key, payload, header, footer, nonce)
   return token
 end
 
+local function aead_decrypt(key, encrypted, header, footer)
+  local luanacha = require("luanacha")
+  local utils = require("utils")
+
+  if header ~= string.sub(encrypted, 0, #header) then
+    error("Invalid message header.")
+  end
+
+  -- Use pcall here?
+  local decoded = utils.base64_decode(string.sub(encrypted, #header + 1))
+  local nonce = string.sub(decoded, 1, CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES)
+  local ciphertext = string.sub(decoded, CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES + 1, #decoded)
+  local additional_data = utils.pre_auth_encode(header .. nonce .. footer)
+  local decrypted = luanacha.aead_unlock(key, nonce, ciphertext, additional_data)
+
+  return decrypted
+end
+
 function v2protocol.encrypt(key, payload, footer)
   footer = footer or ""
   return aead_encrypt(key, payload, HEADER .. ".local.", footer)
+end
+
+function v2protocol.decrypt(key, encrypted, footer)
+  footer = footer or ""
+  return aead_decrypt(key, encrypted, HEADER .. ".local.", footer)
 end
 
 return v2protocol

@@ -36,9 +36,11 @@ describe("v2 protocol", function()
       it("should encrypt and decrypt text without footer", function()
         local token = paseto.v2().encrypt(key, message)
         assert.equal(type(token), "string")
-        assert.equal(string.sub(token, 0, 9), "v2.local.")
+        assert.equal(string.sub(token, 1, 9), "v2.local.")
 
-        print(token)
+        local decrypted = paseto.v2().decrypt(key, token)
+        assert.equal(type(decrypted), "string")
+        assert.equal(message, decrypted)
       end)      
     end)
 
