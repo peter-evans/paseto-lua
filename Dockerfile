@@ -14,7 +14,7 @@ RUN apt-get -y update \
  && luarocks install luatweetnacl \
  && luarocks install plc
 
-RUN git clone https://github.com/philanc/luanacha.git /luanacha \
+RUN git clone https://github.com/peter-evans/luanacha.git -b aead /luanacha \
  && cd /luanacha \
  && make LUADIR=$LUA_DIR \
  && cp luanacha.so $LUA_DIR/lib/lua/$LUA_VERSION/luanacha.so
