@@ -20,7 +20,7 @@ describe("v2 protocol", function()
 
   describe("authenticated encryption", function()
 
-    local key, footer, message
+    local key, message, footer
 
     setup(function()
       key = paseto.v2().generate_symmetric_key()
@@ -102,6 +102,37 @@ describe("v2 protocol", function()
         local decrypted = paseto.v2().decrypt(key, token, footer)
         assert.equal("string", type(decrypted))
         assert.equal(message, decrypted)
+      end)
+
+    end)
+
+  end)
+
+  describe("signing", function()
+
+    local secret_key, public_key, message, footer
+
+    setup(function()
+      local key_pair = paseto.v2().generate_asymmetric_secret_key()
+      secret_key = string.sub(key_pair, 1, 32)
+      public_key = string.sub(key_pair, 33, 64)
+      footer = "footer"
+    end)
+
+    describe("text", function()
+
+      setup(function()
+        message = "test"
+      end)
+
+      it("should sign and verify successfully", function()
+        local token = paseto.v2().sign(secret_key, public_key, message)
+        assert.equal("string", type(token))
+        assert.equal("v2.public.", string.sub(token, 1, 10))
+
+        local verified = paseto.v2().verify(public_key, token)
+        assert.equal("string", type(verified))
+        assert.equal(message, verified)
       end)
 
     end)

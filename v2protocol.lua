@@ -27,9 +27,10 @@ local v2protocol = {
   ]]
 }
 
-local HEADER = "v2"
+local PROTOCOL_VERSION = "v2"
 local SYMMETRIC_KEY_BYTES = 32
 local CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES = 24
+local CRYPTO_SIGN_BYTES = 64
 
 function v2protocol.get_symmetric_key_byte_length()
   return SYMMETRIC_KEY_BYTES
@@ -67,7 +68,7 @@ local function aead_decrypt(key, encrypted, header, footer)
   local luanacha = require("luanacha")
   local utils = require("utils")
 
-  if header ~= string.sub(encrypted, 0, #header) then
+  if header ~= string.sub(encrypted, 1, #header) then
     error("Invalid message header")
   end
 
@@ -82,14 +83,52 @@ end
 
 function v2protocol.encrypt(key, payload, footer)
   footer = footer or ""
-  return aead_encrypt(key, payload, HEADER .. ".local.", footer)
+  return aead_encrypt(key, payload, PROTOCOL_VERSION .. ".local.", footer)
 end
 
-function v2protocol.decrypt(key, encrypted, footer)
+function v2protocol.decrypt(key, token, footer)
   local utils = require("utils")
   footer = footer or ""
-  local encrypted_payload = utils.validate_and_remove_footer(encrypted, footer)
-  return aead_decrypt(key, encrypted_payload, HEADER .. ".local.", footer)
+  local encrypted_payload = utils.validate_and_remove_footer(token, footer)
+  return aead_decrypt(key, encrypted_payload, PROTOCOL_VERSION .. ".local.", footer)
+end
+
+function v2protocol.sign(secret_key, public_key, message, footer)
+  local luanacha = require("luanacha")
+  local utils = require("utils")
+  footer = footer or ""
+
+  local header = PROTOCOL_VERSION .. ".public."
+  local data = utils.pre_auth_encode(header .. message .. footer)
+  local signature = luanacha.sign(secret_key, public_key, data)
+  local token = header .. utils.base64_encode(message .. signature, true) ..
+    (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
+
+  return token
+end
+
+function v2protocol.verify(public_key, token)
+  local luanacha = require("luanacha")
+  local utils = require("utils")
+  footer = footer or ""
+
+  local signed_payload = utils.validate_and_remove_footer(token, footer)
+  local header = PROTOCOL_VERSION .. ".public."
+
+  if header ~= string.sub(signed_payload, 1, #header) then
+    error("Invalid message header")
+  end
+
+  local decoded = utils.base64_decode(string.sub(signed_payload, #header + 1))
+  local message = string.sub(decoded, 1, #decoded - CRYPTO_SIGN_BYTES)
+  local signature = string.sub(decoded, #decoded - CRYPTO_SIGN_BYTES + 1)
+  local data = utils.pre_auth_encode(header .. message .. footer)
+
+  if not luanacha.check(signature, public_key, data) then
+    error("Invalid signature for this message")
+  end
+
+  return message
 end
 
 return v2protocol
