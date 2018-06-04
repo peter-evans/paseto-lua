@@ -42,10 +42,10 @@ function utils.fromhex(str)
 end
 
 function utils.base64_encode(data, no_padding)
-    return ((data:gsub(".", function(x) 
-        local r, ctable = "", x:byte()
+    return ((data:gsub(".", function(x)
+        local r, ctab = "", x:byte()
         for i = 8, 1, -1 do
-          r = r .. (ctable % 2 ^ i - ctable % 2 ^ (i - 1) > 0 and "1" or "0")
+          r = r .. (ctab % 2 ^ i - ctab % 2 ^ (i - 1) > 0 and "1" or "0")
         end
         return r
     end) .. "0000"):gsub("%d%d%d?%d?%d?%d?", function(x)
@@ -90,6 +90,19 @@ function utils.pre_auth_encode(...)
     encoded = encoded .. string.pack("I8", #piece) .. piece
   end
   return encoded
+end
+
+function utils.validate_and_remove_footer(token, footer)
+  if not footer or footer == "" then
+    return token
+  end
+  footer = utils.base64_encode(footer, true)
+  local trailing = string.sub(token, #token - #footer + 1, #token)
+  if trailing ~= footer then
+    error("Invalid message footer")
+  end
+  -- Return token payload
+  return string.sub(token, 1, #token - #footer - 1)
 end
 
 return utils

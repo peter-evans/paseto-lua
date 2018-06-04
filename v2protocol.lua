@@ -57,7 +57,8 @@ local function aead_encrypt(key, payload, header, footer, nonce)
 
   local additional_data = utils.pre_auth_encode(header .. nonce .. footer)
   local ciphertext = luanacha.aead_lock(key, nonce, payload, additional_data)
-  local token = header .. utils.base64_encode(nonce .. ciphertext, true) .. (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
+  local token = header .. utils.base64_encode(nonce .. ciphertext, true) ..
+    (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
 
   return token
 end
@@ -70,7 +71,6 @@ local function aead_decrypt(key, encrypted, header, footer)
     error("Invalid message header.")
   end
 
-  -- Use pcall here?
   local decoded = utils.base64_decode(string.sub(encrypted, #header + 1))
   local nonce = string.sub(decoded, 1, CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES)
   local ciphertext = string.sub(decoded, CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES + 1, #decoded)
@@ -86,8 +86,10 @@ function v2protocol.encrypt(key, payload, footer)
 end
 
 function v2protocol.decrypt(key, encrypted, footer)
+  local utils = require("utils")
   footer = footer or ""
-  return aead_decrypt(key, encrypted, HEADER .. ".local.", footer)
+  local encrypted_payload = utils.validate_and_remove_footer(encrypted, footer)
+  return aead_decrypt(key, encrypted_payload, HEADER .. ".local.", footer)
 end
 
 return v2protocol
