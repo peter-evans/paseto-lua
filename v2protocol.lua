@@ -107,7 +107,7 @@ function v2protocol.sign(secret_key, public_key, message, footer)
   return token
 end
 
-function v2protocol.verify(public_key, token)
+function v2protocol.verify(public_key, token, footer)
   local luanacha = require("luanacha")
   local utils = require("utils")
   footer = footer or ""
