@@ -36,12 +36,12 @@ function v2protocol.get_symmetric_key_byte_length()
 end
 
 function v2protocol.generate_symmetric_key()
-  return require("luatweetnacl").randombytes(SYMMETRIC_KEY_BYTES)
+  return require("luanacha").randombytes(SYMMETRIC_KEY_BYTES)
 end
 
 function v2protocol.generate_asymmetric_secret_key()
-  local _, secret_key = require("luatweetnacl").sign_keypair()
-  return secret_key
+  local public_key, secret_key = require("luanacha").sign_keypair()
+  return secret_key .. public_key
 end
 
 local function aead_encrypt(key, payload, header, footer, nonce)

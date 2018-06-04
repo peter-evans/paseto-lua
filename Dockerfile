@@ -10,9 +10,7 @@ RUN apt-get -y update \
  && hererocks $LUA_DIR -r^ --lua=$LUA_VERSION \
  && luarocks install busted \
  && luarocks install luacheck \
- && luarocks install luacov \
- && luarocks install luatweetnacl \
- && luarocks install plc
+ && luarocks install luacov
 
 RUN git clone https://github.com/peter-evans/luanacha.git -b aead /luanacha \
  && cd /luanacha \
