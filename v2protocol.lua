@@ -68,7 +68,7 @@ local function aead_decrypt(key, encrypted, header, footer)
   local utils = require("utils")
 
   if header ~= string.sub(encrypted, 0, #header) then
-    error("Invalid message header.")
+    error("Invalid message header")
   end
 
   local decoded = utils.base64_decode(string.sub(encrypted, #header + 1))

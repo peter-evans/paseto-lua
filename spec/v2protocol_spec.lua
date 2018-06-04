@@ -53,6 +53,65 @@ describe("v2 protocol", function()
         assert.equal(message, decrypted)
       end)
 
+      it("should raise error 'Invalid message header'", function()
+        local decrypt = function()
+          paseto.v2().decrypt(key, message)
+        end
+        assert.has_error(decrypt, "Invalid message header")
+      end)
+
+      it("should raise error 'bad nonce size'", function()
+        local decrypt = function()
+          paseto.v2().decrypt(key, "v2.local." .. message)
+        end
+        assert.has_error(decrypt, "bad nonce size")
+      end)
+
+      it("should raise error 'Invalid message footer'", function()
+        local token = paseto.v2().encrypt(key, message)
+        local decrypt = function()
+          paseto.v2().decrypt(key, token, "footer")
+        end
+        assert.has_error(decrypt, "Invalid message footer")
+      end)
+
+      it("should raise error 'Invalid message footer'", function()
+        local token = paseto.v2().encrypt(key, message, footer)
+        local decrypt = function()
+          paseto.v2().decrypt(key, token)
+        end
+        assert.has_error(decrypt, "Invalid message footer")
+      end)
+
+    end)
+
+    describe("json", function()
+
+      setup(function()
+        message = "{ \"data\": \"this is a signed message\", \"expires\": \"" ..
+          os.date("%Y") .. "-01-01T00:00:00+00:00\" }"
+      end)
+
+      it("should encrypt and decrypt json without footer", function()
+        local token = paseto.v2().encrypt(key, message)
+        assert.equal("string", type(token))
+        assert.equal("v2.local.", string.sub(token, 1, 9))
+
+        local decrypted = paseto.v2().decrypt(key, token)
+        assert.equal("string", type(decrypted))
+        assert.equal(message, decrypted)
+      end)
+
+      it("should encrypt and decrypt json with footer", function()
+        local token = paseto.v2().encrypt(key, message, footer)
+        assert.equal("string", type(token))
+        assert.equal("v2.local.", string.sub(token, 1, 9))
+
+        local decrypted = paseto.v2().decrypt(key, token, footer)
+        assert.equal("string", type(decrypted))
+        assert.equal(message, decrypted)
+      end)
+
     end)
 
   end)
