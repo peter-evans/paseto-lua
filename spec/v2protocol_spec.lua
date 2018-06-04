@@ -75,14 +75,6 @@ describe("v2 protocol", function()
         assert.has_error(decrypt, "Invalid message footer")
       end)
 
-      it("should raise error 'Invalid message footer'", function()
-        local token = paseto.v2().encrypt(key, message, footer)
-        local decrypt = function()
-          paseto.v2().decrypt(key, token)
-        end
-        assert.has_error(decrypt, "Invalid message footer")
-      end)
-
     end)
 
     describe("json", function()
