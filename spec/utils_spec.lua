@@ -60,7 +60,7 @@ describe("utils", function()
 
     it("should ensure that faked padding results in different prefixes", function()
       assert.equal("0100000000000000190000000000000050617261676f6e0a00000000000000496e6974696174697665",
-        utils.tohex(utils.pre_auth_encode("Paragon" .. string.char(10) .. "\0\0\0\0\0\0\0" .. "Initiative")));
+        utils.tohex(utils.pre_auth_encode("Paragon" .. string.char(10) .. string.rep("\0", 7) .. "Initiative")));
     end)
 
   end)

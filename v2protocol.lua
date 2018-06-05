@@ -45,16 +45,17 @@ function v2protocol.generate_asymmetric_secret_key()
   return secret_key .. public_key
 end
 
-local function aead_encrypt(key, payload, header, footer, nonce)
+local function aead_encrypt(key, payload, header, footer, nonce_key)
   local luanacha = require("luanacha")
   local utils = require("utils")
 
-  if not nonce then
-    local nonce_key = luanacha.randombytes(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES)
-    local blake2b_ctx = luanacha.blake2b_init(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES, nonce_key)
-    luanacha.blake2b_update(blake2b_ctx, payload)
-    nonce = luanacha.blake2b_final(blake2b_ctx)
+  if #nonce_key == 0 then
+    nonce_key = luanacha.randombytes(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES)
   end
+
+  local blake2b_ctx = luanacha.blake2b_init(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES, nonce_key)
+  luanacha.blake2b_update(blake2b_ctx, payload)
+  nonce = luanacha.blake2b_final(blake2b_ctx)
 
   local additional_data = utils.pre_auth_encode(header .. nonce .. footer)
   local ciphertext = luanacha.aead_lock(key, nonce, payload, additional_data)
@@ -81,9 +82,14 @@ local function aead_decrypt(key, encrypted, header, footer)
   return decrypted
 end
 
+function v2protocol.__encrypt(key, payload, footer, nonce)
+  nonce = nonce or ""
+  return aead_encrypt(key, payload, PROTOCOL_VERSION .. ".local.", footer, nonce)
+end
+
 function v2protocol.encrypt(key, payload, footer)
   footer = footer or ""
-  return aead_encrypt(key, payload, PROTOCOL_VERSION .. ".local.", footer)
+  return v2protocol.__encrypt(key, payload, footer)
 end
 
 function v2protocol.decrypt(key, token, footer)

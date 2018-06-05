@@ -2,7 +2,6 @@ local paseto = require "paseto"
 
 describe("v2 protocol", function()
 
-
   describe("key generation", function()
 
     it("should generate a symmetric key", function()
@@ -16,7 +15,6 @@ describe("v2 protocol", function()
     end)
 
   end)
-
 
   describe("authenticated encryption", function()
 
