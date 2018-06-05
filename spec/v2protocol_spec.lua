@@ -125,7 +125,7 @@ describe("v2 protocol", function()
         message = "test"
       end)
 
-      it("should sign and verify successfully without footer", function()
+      it("should sign and verify text successfully without footer", function()
         local token = paseto.v2().sign(secret_key, public_key, message)
         assert.equal("string", type(token))
         assert.equal("v2.public.", string.sub(token, 1, 10))
@@ -135,7 +135,58 @@ describe("v2 protocol", function()
         assert.equal(message, verified)
       end)
 
-      it("should sign and verify successfully with footer", function()
+      it("should sign and verify text successfully with footer", function()
+        local token = paseto.v2().sign(secret_key, public_key, message, footer)
+        assert.equal("string", type(token))
+        assert.equal("v2.public.", string.sub(token, 1, 10))
+
+        local verified = paseto.v2().verify(public_key, token, footer)
+        assert.equal("string", type(verified))
+        assert.equal(message, verified)
+      end)
+
+      it("should raise error 'Invalid message header'", function()
+        local verify = function()
+          paseto.v2().verify(public_key, message)
+        end
+        assert.has_error(verify, "Invalid message header")
+      end)
+
+      it("should raise error 'bad signature size'", function()
+        local verify = function()
+          paseto.v2().verify(public_key, "v2.public." .. message)
+        end
+        assert.has_error(verify, "bad signature size")
+      end)
+
+      it("should raise error 'Invalid message footer'", function()
+        local token = paseto.v2().sign(secret_key, public_key, message)
+        local verify = function()
+          paseto.v2().verify(public_key, token, "footer")
+        end
+        assert.has_error(verify, "Invalid message footer")
+      end)
+
+    end)
+
+    describe("json", function()
+
+      setup(function()
+        message = "{ \"data\": \"this is a signed message\", \"expires\": \"" ..
+          os.date("%Y") .. "-01-01T00:00:00+00:00\" }"
+      end)
+
+      it("should sign and verify json successfully without footer", function()
+        local token = paseto.v2().sign(secret_key, public_key, message)
+        assert.equal("string", type(token))
+        assert.equal("v2.public.", string.sub(token, 1, 10))
+
+        local verified = paseto.v2().verify(public_key, token)
+        assert.equal("string", type(verified))
+        assert.equal(message, verified)
+      end)
+
+      it("should sign and verify json successfully with footer", function()
         local token = paseto.v2().sign(secret_key, public_key, message, footer)
         assert.equal("string", type(token))
         assert.equal("v2.public.", string.sub(token, 1, 10))
