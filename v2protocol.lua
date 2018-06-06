@@ -57,7 +57,7 @@ local function aead_encrypt(key, payload, header, footer, nonce_key)
   luanacha.blake2b_update(blake2b_ctx, payload)
   nonce = luanacha.blake2b_final(blake2b_ctx)
 
-  local additional_data = utils.pre_auth_encode(header .. nonce .. footer)
+  local additional_data = utils.pre_auth_encode(header, nonce, footer)
   local ciphertext = luanacha.aead_lock(key, nonce, payload, additional_data)
   local token = header .. utils.base64_encode(nonce .. ciphertext, true) ..
     (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
@@ -76,7 +76,7 @@ local function aead_decrypt(key, encrypted, header, footer)
   local decoded = utils.base64_decode(string.sub(encrypted, #header + 1))
   local nonce = string.sub(decoded, 1, CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES)
   local ciphertext = string.sub(decoded, CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES + 1, #decoded)
-  local additional_data = utils.pre_auth_encode(header .. nonce .. footer)
+  local additional_data = utils.pre_auth_encode(header, nonce, footer)
   local decrypted = luanacha.aead_unlock(key, nonce, ciphertext, additional_data)
 
   return decrypted
