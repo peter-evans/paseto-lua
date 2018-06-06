@@ -16,6 +16,13 @@ RUN git clone https://github.com/peter-evans/luanacha.git -b v2 /luanacha \
  && cd /luanacha \
  && make LUADIR=$LUA_DIR \
  && cp luanacha.so $LUA_DIR/lib/lua/$LUA_VERSION/luanacha.so
+RUN wget https://download.libsodium.org/libsodium/releases/LATEST.tar.gz \
+ && tar xzf LATEST.tar.gz \
+ && cd libsodium-stable/ \
+ && ./configure --prefix=/usr \
+ && make \
+ && make check \
+ && make install
 
 WORKDIR /paseto
 
