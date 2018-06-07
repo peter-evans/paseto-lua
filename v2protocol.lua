@@ -28,8 +28,6 @@ local v2protocol = {
 }
 
 local PROTOCOL_VERSION = "v2"
-local CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES = 24
-local CRYPTO_SIGN_BYTES = 64
 local luasodium = require("luasodium")
 
 function v2protocol.get_symmetric_key_byte_length()
@@ -41,24 +39,21 @@ function v2protocol.generate_symmetric_key()
 end
 
 function v2protocol.generate_asymmetric_secret_key()
-  local public_key, secret_key = require("luanacha").sign_keypair()
-  return secret_key .. public_key
+  local _, secret_key = luasodium.sign_keypair()
+  return secret_key
 end
 
 local function aead_encrypt(key, payload, header, footer, nonce_key)
-  local luanacha = require("luanacha")
   local utils = require("utils")
 
   if #nonce_key == 0 then
-    nonce_key = luanacha.randombytes(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES)
+    nonce_key = luasodium.randombytes(luasodium.SYMMETRIC_NONCEBYTES)
   end
 
-  local blake2b_ctx = luanacha.blake2b_init(CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES, nonce_key)
-  luanacha.blake2b_update(blake2b_ctx, payload)
-  nonce = luanacha.blake2b_final(blake2b_ctx)
-
+  local nonce = luasodium.generichash(payload, nonce_key, luasodium.SYMMETRIC_NONCEBYTES)
   local additional_data = utils.pre_auth_encode(header, nonce, footer)
-  local ciphertext = luanacha.aead_lock(key, nonce, payload, additional_data)
+  local ciphertext = luasodium.aead_encrypt(payload, additional_data, nonce, key)
+
   local token = header .. utils.base64_encode(nonce .. ciphertext, true) ..
     (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
 
@@ -66,7 +61,6 @@ local function aead_encrypt(key, payload, header, footer, nonce_key)
 end
 
 local function aead_decrypt(key, encrypted, header, footer)
-  local luanacha = require("luanacha")
   local utils = require("utils")
 
   if header ~= string.sub(encrypted, 1, #header) then
@@ -74,10 +68,10 @@ local function aead_decrypt(key, encrypted, header, footer)
   end
 
   local decoded = utils.base64_decode(string.sub(encrypted, #header + 1))
-  local nonce = string.sub(decoded, 1, CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES)
-  local ciphertext = string.sub(decoded, CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES + 1, #decoded)
+  local nonce = string.sub(decoded, 1, luasodium.SYMMETRIC_NONCEBYTES)
+  local ciphertext = string.sub(decoded, luasodium.SYMMETRIC_NONCEBYTES + 1, #decoded)
   local additional_data = utils.pre_auth_encode(header, nonce, footer)
-  local decrypted = luanacha.aead_unlock(key, nonce, ciphertext, additional_data)
+  local decrypted = luasodium.aead_decrypt(ciphertext, additional_data, nonce, key)
 
   return decrypted
 end
@@ -99,14 +93,14 @@ function v2protocol.decrypt(key, token, footer)
   return aead_decrypt(key, encrypted_payload, PROTOCOL_VERSION .. ".local.", footer)
 end
 
-function v2protocol.sign(secret_key, public_key, message, footer)
-  local luanacha = require("luanacha")
+function v2protocol.sign(secret_key, message, footer)
   local utils = require("utils")
   footer = footer or ""
 
   local header = PROTOCOL_VERSION .. ".public."
   local data = utils.pre_auth_encode(header .. message .. footer)
-  local signature = luanacha.sign(secret_key, public_key, data)
+  local signature = luasodium.sign_detached(data, secret_key)
+
   local token = header .. utils.base64_encode(message .. signature, true) ..
     (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
 
@@ -114,7 +108,6 @@ function v2protocol.sign(secret_key, public_key, message, footer)
 end
 
 function v2protocol.verify(public_key, token, footer)
-  local luanacha = require("luanacha")
   local utils = require("utils")
   footer = footer or ""
 
@@ -126,11 +119,11 @@ function v2protocol.verify(public_key, token, footer)
   end
 
   local decoded = utils.base64_decode(string.sub(signed_payload, #header + 1))
-  local message = string.sub(decoded, 1, #decoded - CRYPTO_SIGN_BYTES)
-  local signature = string.sub(decoded, #decoded - CRYPTO_SIGN_BYTES + 1)
+  local message = string.sub(decoded, 1, #decoded - luasodium.SIGN_BYTES)
+  local signature = string.sub(decoded, #decoded - luasodium.SIGN_BYTES + 1)
   local data = utils.pre_auth_encode(header .. message .. footer)
 
-  if not luanacha.check(signature, public_key, data) then
+  if not luasodium.sign_verify_detached(data, signature, public_key) then
     error("Invalid signature for this message")
   end
 

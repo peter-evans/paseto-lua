@@ -111,9 +111,8 @@ describe("v2 protocol", function()
     local secret_key, public_key, message, footer
 
     setup(function()
-      local key_pair = paseto.v2().generate_asymmetric_secret_key()
-      secret_key = string.sub(key_pair, 1, 32)
-      public_key = string.sub(key_pair, 33, 64)
+      secret_key = paseto.v2().generate_asymmetric_secret_key()
+      public_key = string.sub(secret_key, 33, 64)
       footer = "footer"
     end)
 
@@ -124,7 +123,7 @@ describe("v2 protocol", function()
       end)
 
       it("should sign and verify text successfully without footer", function()
-        local token = paseto.v2().sign(secret_key, public_key, message)
+        local token = paseto.v2().sign(secret_key, message)
         assert.equal("string", type(token))
         assert.equal("v2.public.", string.sub(token, 1, 10))
 
@@ -134,7 +133,7 @@ describe("v2 protocol", function()
       end)
 
       it("should sign and verify text successfully with footer", function()
-        local token = paseto.v2().sign(secret_key, public_key, message, footer)
+        local token = paseto.v2().sign(secret_key, message, footer)
         assert.equal("string", type(token))
         assert.equal("v2.public.", string.sub(token, 1, 10))
 
@@ -158,7 +157,7 @@ describe("v2 protocol", function()
       end)
 
       it("should raise error 'Invalid message footer'", function()
-        local token = paseto.v2().sign(secret_key, public_key, message)
+        local token = paseto.v2().sign(secret_key, message)
         local verify = function()
           paseto.v2().verify(public_key, token, "footer")
         end
@@ -175,7 +174,7 @@ describe("v2 protocol", function()
       end)
 
       it("should sign and verify json successfully without footer", function()
-        local token = paseto.v2().sign(secret_key, public_key, message)
+        local token = paseto.v2().sign(secret_key, message)
         assert.equal("string", type(token))
         assert.equal("v2.public.", string.sub(token, 1, 10))
 
@@ -185,7 +184,7 @@ describe("v2 protocol", function()
       end)
 
       it("should sign and verify json successfully with footer", function()
-        local token = paseto.v2().sign(secret_key, public_key, message, footer)
+        local token = paseto.v2().sign(secret_key, message, footer)
         assert.equal("string", type(token))
         assert.equal("v2.public.", string.sub(token, 1, 10))
 
