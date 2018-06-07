@@ -28,16 +28,16 @@ local v2protocol = {
 }
 
 local PROTOCOL_VERSION = "v2"
-local SYMMETRIC_KEY_BYTES = 32
 local CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES = 24
 local CRYPTO_SIGN_BYTES = 64
+local luasodium = require("luasodium")
 
 function v2protocol.get_symmetric_key_byte_length()
-  return SYMMETRIC_KEY_BYTES
+  return luasodium.SYMMETRIC_KEYBYTES
 end
 
 function v2protocol.generate_symmetric_key()
-  return require("luanacha").randombytes(SYMMETRIC_KEY_BYTES)
+  return luasodium.randombytes(luasodium.SYMMETRIC_KEYBYTES)
 end
 
 function v2protocol.generate_asymmetric_secret_key()

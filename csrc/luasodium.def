@@ -1,0 +1,4 @@
+LIBRARY luasodium.dll
+VERSION 0.1
+EXPORTS
+luaopen_luasodium
