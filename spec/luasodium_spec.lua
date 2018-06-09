@@ -145,10 +145,10 @@ describe("luasodium", function()
       assert.equal("Invalid public key size", err)
     end)
 
-    it("should raise error 'Incorrect signature'", function()
+    it("should raise error 'Invalid signature for this message'", function()
       local verified, err = luasodium.sign_verify_detached("test", "\0", public_key)
       assert.equal(nil, verified)
-      assert.equal("Incorrect signature", err)
+      assert.equal("Invalid signature for this message", err)
     end)
 
   end)

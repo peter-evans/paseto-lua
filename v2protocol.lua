@@ -29,6 +29,56 @@ local v2protocol = {
 
 local PROTOCOL_VERSION = "v2"
 local luasodium = require("luasodium")
+local utils = require("utils")
+
+function v2protocol.__pre_auth_encode(...)
+  local encoded = string.pack("I8", #{...})
+  for _, piece in ipairs({...})
+  do
+    encoded = encoded .. string.pack("I8", #piece) .. piece
+  end
+  return encoded
+end
+
+function v2protocol.__validate_and_remove_footer(token, footer)
+  if not footer or footer == "" then
+    return token
+  end
+  footer = utils.base64_encode(footer, true)
+  local trailing = string.sub(token, #token - #footer + 1, #token)
+  if trailing ~= footer then
+    return nil, "Invalid message footer"
+  end
+  return string.sub(token, 1, #token - #footer - 1)
+end
+
+local function aead_encrypt(key, payload, header, footer, nonce_key)
+  if #nonce_key == 0 then
+    nonce_key = luasodium.randombytes(luasodium.SYMMETRIC_NONCEBYTES)
+  end
+  local nonce = luasodium.generichash(payload, nonce_key, luasodium.SYMMETRIC_NONCEBYTES)
+  local additional_data = v2protocol.__pre_auth_encode(header, nonce, footer)
+  local ciphertext, err = luasodium.aead_encrypt(payload, additional_data, nonce, key)
+  if not ciphertext then
+    return nil, err
+  end
+  local token = header .. utils.base64_encode(nonce .. ciphertext, true) ..
+    (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
+
+  return token
+end
+
+local function aead_decrypt(key, encrypted, header, footer)
+  if header ~= string.sub(encrypted, 1, #header) then
+    return nil, "Invalid message header"
+  end
+  local decoded = utils.base64_decode(string.sub(encrypted, #header + 1))
+  local nonce = string.sub(decoded, 1, luasodium.SYMMETRIC_NONCEBYTES)
+  local ciphertext = string.sub(decoded, luasodium.SYMMETRIC_NONCEBYTES + 1, #decoded)
+  local additional_data = v2protocol.__pre_auth_encode(header, nonce, footer)
+  local decrypted, err = luasodium.aead_decrypt(ciphertext, additional_data, nonce, key)
+  return decrypted, err
+end
 
 function v2protocol.get_symmetric_key_byte_length()
   return luasodium.SYMMETRIC_KEYBYTES
@@ -43,39 +93,6 @@ function v2protocol.generate_asymmetric_secret_key()
   return secret_key
 end
 
-local function aead_encrypt(key, payload, header, footer, nonce_key)
-  local utils = require("utils")
-
-  if #nonce_key == 0 then
-    nonce_key = luasodium.randombytes(luasodium.SYMMETRIC_NONCEBYTES)
-  end
-
-  local nonce = luasodium.generichash(payload, nonce_key, luasodium.SYMMETRIC_NONCEBYTES)
-  local additional_data = utils.pre_auth_encode(header, nonce, footer)
-  local ciphertext = luasodium.aead_encrypt(payload, additional_data, nonce, key)
-
-  local token = header .. utils.base64_encode(nonce .. ciphertext, true) ..
-    (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
-
-  return token
-end
-
-local function aead_decrypt(key, encrypted, header, footer)
-  local utils = require("utils")
-
-  if header ~= string.sub(encrypted, 1, #header) then
-    error("Invalid message header")
-  end
-
-  local decoded = utils.base64_decode(string.sub(encrypted, #header + 1))
-  local nonce = string.sub(decoded, 1, luasodium.SYMMETRIC_NONCEBYTES)
-  local ciphertext = string.sub(decoded, luasodium.SYMMETRIC_NONCEBYTES + 1, #decoded)
-  local additional_data = utils.pre_auth_encode(header, nonce, footer)
-  local decrypted = luasodium.aead_decrypt(ciphertext, additional_data, nonce, key)
-
-  return decrypted
-end
-
 function v2protocol.__encrypt(key, payload, footer, nonce)
   nonce = nonce or ""
   return aead_encrypt(key, payload, PROTOCOL_VERSION .. ".local.", footer, nonce)
@@ -87,46 +104,43 @@ function v2protocol.encrypt(key, payload, footer)
 end
 
 function v2protocol.decrypt(key, token, footer)
-  local utils = require("utils")
   footer = footer or ""
-  local encrypted_payload = utils.validate_and_remove_footer(token, footer)
+  local encrypted_payload, err = v2protocol.__validate_and_remove_footer(token, footer)
+  if not encrypted_payload then
+    return nil, err
+  end
   return aead_decrypt(key, encrypted_payload, PROTOCOL_VERSION .. ".local.", footer)
 end
 
 function v2protocol.sign(secret_key, message, footer)
-  local utils = require("utils")
   footer = footer or ""
-
   local header = PROTOCOL_VERSION .. ".public."
-  local data = utils.pre_auth_encode(header .. message .. footer)
+  local data = v2protocol.__pre_auth_encode(header .. message .. footer)
   local signature = luasodium.sign_detached(data, secret_key)
-
   local token = header .. utils.base64_encode(message .. signature, true) ..
     (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
-
   return token
 end
 
 function v2protocol.verify(public_key, token, footer)
-  local utils = require("utils")
   footer = footer or ""
-
-  local signed_payload = utils.validate_and_remove_footer(token, footer)
-  local header = PROTOCOL_VERSION .. ".public."
-
-  if header ~= string.sub(signed_payload, 1, #header) then
-    error("Invalid message header")
+  local signed_payload, err = v2protocol.__validate_and_remove_footer(token, footer)
+  if not signed_payload then
+    return nil, err
   end
-
+  local header = PROTOCOL_VERSION .. ".public."
+  if header ~= string.sub(signed_payload, 1, #header) then
+    return nil, "Invalid message header"
+  end
   local decoded = utils.base64_decode(string.sub(signed_payload, #header + 1))
   local message = string.sub(decoded, 1, #decoded - luasodium.SIGN_BYTES)
   local signature = string.sub(decoded, #decoded - luasodium.SIGN_BYTES + 1)
-  local data = utils.pre_auth_encode(header .. message .. footer)
-
-  if not luasodium.sign_verify_detached(data, signature, public_key) then
-    error("Invalid signature for this message")
+  local data = v2protocol.__pre_auth_encode(header .. message .. footer)
+  local verified
+  verified, err = luasodium.sign_verify_detached(data, signature, public_key)
+  if not verified then
+    return nil, err
   end
-
   return message
 end
 

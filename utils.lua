@@ -83,26 +83,4 @@ function utils.base64_decode(data)
     end))
 end
 
-function utils.pre_auth_encode(...)
-  local encoded = string.pack("I8", #{...})
-  for _, piece in ipairs({...})
-  do
-    encoded = encoded .. string.pack("I8", #piece) .. piece
-  end
-  return encoded
-end
-
-function utils.validate_and_remove_footer(token, footer)
-  if not footer or footer == "" then
-    return token
-  end
-  footer = utils.base64_encode(footer, true)
-  local trailing = string.sub(token, #token - #footer + 1, #token)
-  if trailing ~= footer then
-    error("Invalid message footer")
-  end
-  -- Return token payload
-  return string.sub(token, 1, #token - #footer - 1)
-end
-
 return utils

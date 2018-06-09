@@ -139,7 +139,7 @@ static int ls_sign_verify_detached(lua_State *L) {
 	}
 	if (crypto_sign_verify_detached(sig, msg, msglen, pk) != 0) {
 		lua_pushnil(L);
-		lua_pushstring(L, "Incorrect signature");
+		lua_pushstring(L, "Invalid signature for this message");
 		return 2;
 	}
 	lua_pushlstring(L, (char*)msg, msglen);
