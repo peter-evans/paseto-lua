@@ -1,6 +1,6 @@
 #!/bin/bash
 
-make LUADIR=/lua_install
+luarocks make
 
 luacheck --std max+busted paseto spec
 busted --verbose --coverage
