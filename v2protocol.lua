@@ -29,7 +29,7 @@ local v2protocol = {
 
 local PROTOCOL_VERSION = "v2"
 local luasodium = require("luasodium")
-local utils = require("utils")
+local basexx = require("basexx")
 
 function v2protocol.__pre_auth_encode(...)
   local encoded = string.pack("I8", #{...})
@@ -44,7 +44,7 @@ function v2protocol.__validate_and_remove_footer(token, footer)
   if not footer or footer == "" then
     return token
   end
-  footer = utils.base64_encode(footer, true)
+  footer = basexx.to_url64(footer)
   local trailing = string.sub(token, #token - #footer + 1, #token)
   if trailing ~= footer then
     return nil, "Invalid message footer"
@@ -62,8 +62,8 @@ local function aead_encrypt(key, payload, header, footer, nonce_key)
   if not ciphertext then
     return nil, err
   end
-  local token = header .. utils.base64_encode(nonce .. ciphertext, true) ..
-    (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
+  local token = header .. basexx.to_url64(nonce .. ciphertext) ..
+    (#footer > 0 and "." .. basexx.to_url64(footer) or "")
 
   return token
 end
@@ -72,7 +72,7 @@ local function aead_decrypt(key, encrypted, header, footer)
   if header ~= string.sub(encrypted, 1, #header) then
     return nil, "Invalid message header"
   end
-  local decoded = utils.base64_decode(string.sub(encrypted, #header + 1))
+  local decoded = basexx.from_url64(string.sub(encrypted, #header + 1))
   local nonce = string.sub(decoded, 1, luasodium.SYMMETRIC_NONCEBYTES)
   local ciphertext = string.sub(decoded, luasodium.SYMMETRIC_NONCEBYTES + 1, #decoded)
   local additional_data = v2protocol.__pre_auth_encode(header, nonce, footer)
@@ -117,8 +117,8 @@ function v2protocol.sign(secret_key, message, footer)
   local header = PROTOCOL_VERSION .. ".public."
   local data = v2protocol.__pre_auth_encode(header .. message .. footer)
   local signature = luasodium.sign_detached(data, secret_key)
-  local token = header .. utils.base64_encode(message .. signature, true) ..
-    (#footer > 0 and "." .. utils.base64_encode(footer, true) or "")
+  local token = header .. basexx.to_url64(message .. signature) ..
+    (#footer > 0 and "." .. basexx.to_url64(footer) or "")
   return token
 end
 
@@ -132,7 +132,7 @@ function v2protocol.verify(public_key, token, footer)
   if header ~= string.sub(signed_payload, 1, #header) then
     return nil, "Invalid message header"
   end
-  local decoded = utils.base64_decode(string.sub(signed_payload, #header + 1))
+  local decoded = basexx.from_url64(string.sub(signed_payload, #header + 1))
   local message = string.sub(decoded, 1, #decoded - luasodium.SIGN_BYTES)
   local signature = string.sub(decoded, #decoded - luasodium.SIGN_BYTES + 1)
   local data = v2protocol.__pre_auth_encode(header .. message .. footer)

@@ -1,11 +1,12 @@
 local paseto = require "paseto"
+local basexx = require "basexx"
 
 describe("v2 protocol official test vectors", function()
 
   local symmetricKey
 
   setup(function()
-    symmetricKey = require("utils").fromhex("707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f")
+    symmetricKey = basexx.from_hex("707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f")
   end)
 
   describe("official test vectors", function()
@@ -15,7 +16,7 @@ describe("v2 protocol official test vectors", function()
     setup(function()
         nonce = string.rep("\0", 24)
         -- nonce2 = sodium_crypto_generichash("Paragon Initiative Enterprises, LLC", "", 24)
-        nonce2 = require("utils").fromhex("45742c976d684ff84ebdc0de59809a97cda2f64c84fda19b")
+        nonce2 = basexx.from_hex("45742c976d684ff84ebdc0de59809a97cda2f64c84fda19b")
         footer = ""
         --message = \json_encode(['data' => 'this is a signed message', 'exp' => '2019-01-01T00:00:00+00:00']);
         message = "{\"data\":\"this is a signed message\",\"exp\":\"2019-01-01T00:00:00+00:00\"}"

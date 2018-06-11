@@ -8,6 +8,7 @@ RUN apt-get -y update \
  && apt-get install -y -qq --no-install-recommends unzip \
  && pip install hererocks \
  && hererocks $LUA_DIR -r^ --lua=$LUA_VERSION \
+ && luarocks install basexx \
  && luarocks install busted \
  && luarocks install luacheck \
  && luarocks install luacov
