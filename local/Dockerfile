@@ -23,4 +23,4 @@ RUN wget https://download.libsodium.org/libsodium/releases/LATEST.tar.gz \
 
 WORKDIR /paseto
 
-CMD [ "./docker-cmd.sh" ]
+CMD [ "./local/docker-cmd.sh" ]
