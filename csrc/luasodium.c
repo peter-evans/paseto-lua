@@ -1,4 +1,10 @@
-#define LUASODIUM_VERSION "luasodium-0.1"
+/*
+ * luasodium
+ * ---------
+ * Description: A binding to libsodium
+ * Author: Peter Evans
+ * License: MIT (See LICENSE file)
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -7,6 +13,9 @@
 
 #include "lua.h"
 #include "lauxlib.h"
+
+#define LUASODIUM_VERSION "luasodium-0.1"
+#define MAX_RANDOM_BYTES 256
 
 
 // Compatibility with Lua 5.2 onwards
@@ -17,17 +26,27 @@
 #endif
 
 
+/*
+ * Returns the version of luasodium
+ */
 static int ls_sodium_version(lua_State *L) {
 	lua_pushstring(L, sodium_version_string());
 	return 1;
 }
 
 
+/*
+ * Returns a specified number of random bytes
+ *
+ * randombytes(n)
+ * n (integer): The number of random bytes
+ * returns (string) n random bytes
+ */
 static int ls_randombytes(lua_State *L) {
 	size_t bufln; 
-	unsigned char buf[256];
+	unsigned char buf[MAX_RANDOM_BYTES];
 	lua_Integer byteslen = luaL_checkinteger(L, 1);
-	if ((byteslen > 256 ) || (byteslen < 0)) {
+	if ((byteslen > MAX_RANDOM_BYTES ) || (byteslen < 0)) {
 		lua_pushnil(L);
 		lua_pushstring(L, "Invalid number of bytes");
 		return 2;
@@ -38,6 +57,12 @@ static int ls_randombytes(lua_State *L) {
 }
 
 
+/*
+ * Returns a key pair
+ *
+ * sign_keypair()
+ * returns (string) public key, (string) private key
+ */
 static int ls_sign_keypair(lua_State *L) {
 	unsigned char pk[crypto_sign_PUBLICKEYBYTES];
 	unsigned char sk[crypto_sign_SECRETKEYBYTES];
@@ -52,6 +77,15 @@ static int ls_sign_keypair(lua_State *L) {
 }
 
 
+/*
+ * Returns a specified length hash of a message
+ *
+ * generichash(msg, key, hashlen)
+ * msg (string): The message to hash
+ * key (string): The key
+ * hashlen (integer): The desired length of the hash
+ * returns (string) hash
+ */
 static int ls_generichash(lua_State *L) {
 	size_t msglen, keylen;
 	const unsigned char *msg = luaL_checklstring(L, 1, &msglen);
@@ -69,6 +103,17 @@ static int ls_generichash(lua_State *L) {
 }
 
 
+/*
+ * Authenticated encryption with addition data (XChaCha20-Poly1305 construction)
+ * Encrypts a message and returns the ciphertext
+ *
+ * aead_encrypt(msg, ad, nonce, key)
+ * msg (string): The message to hash
+ * ad (string): The additional data
+ * nonce (string): The nonce
+ * key (string): The key
+ * returns (string) ciphertext
+ */
 static int ls_aead_encrypt(lua_State *L) {
 	size_t msglen, adlen, noncelen, keylen;
 	const unsigned char *msg = luaL_checklstring(L, 1, &msglen);
@@ -93,6 +138,17 @@ static int ls_aead_encrypt(lua_State *L) {
 }
 
 
+/*
+ * Authenticated encryption with addition data (XChaCha20-Poly1305 construction)
+ * Decrypts a message and returns the decrypted text
+ *
+ * aead_decrypt(ciphertext, ad, nonce, key)
+ * ciphertext (string): The ciphertext to decrypt
+ * ad (string): The additional data
+ * nonce (string): The nonce
+ * key (string): The key
+ * returns (string) decrypted message
+ */
 static int ls_aead_decrypt(lua_State *L) {
 	size_t ciphertextlen, adlen, noncelen, keylen;
 	const unsigned char *ciphertext = luaL_checklstring(L, 1, &ciphertextlen);
@@ -111,6 +167,15 @@ static int ls_aead_decrypt(lua_State *L) {
 }
 
 
+/*
+ * Message signing/verification (Ed25519)
+ * Signs a message and returns the signature
+ *
+ * sign_detached(msg, sk)
+ * msg (string): The message to sign
+ * sk (string): The secret key
+ * returns (string) signature
+ */
 static int ls_sign_detached(lua_State *L) {
 	size_t msglen, sklen;
 	const unsigned char *msg = luaL_checklstring(L, 1, &msglen);
@@ -127,6 +192,16 @@ static int ls_sign_detached(lua_State *L) {
 }
 
 
+/*
+ * Message signing/verification (Ed25519)
+ * Verifies a message against a signature and returns the message
+ *
+ * sign_verify_detached(msg, sk)
+ * msg (string): The message to verify
+ * sig (string): The signature to verify against
+ * pk (string): The public key
+ * returns (string) message
+ */
 static int ls_sign_verify_detached(lua_State *L) {
 	size_t msglen, siglen, pklen;
 	const unsigned char *msg = luaL_checklstring(L, 1, &msglen);
@@ -147,6 +222,9 @@ static int ls_sign_verify_detached(lua_State *L) {
 }
 
 
+/*
+ * Lua library declaration
+ */
 static const struct luaL_Reg luasodiumlib[] = {
 	{"sodium_version", ls_sodium_version},
 	{"randombytes", ls_randombytes},
@@ -160,6 +238,9 @@ static const struct luaL_Reg luasodiumlib[] = {
 };
 
 
+/*
+ * Lua library initialisation
+ */
 LUALIB_API int luaopen_luasodium(lua_State *L) {
 	if (sodium_init() < 0) {
 		lua_pushstring(L, "Failed to initialise libsodium");
