@@ -2,6 +2,6 @@
 
 make LUADIR=/lua_install
 
-luacheck --std max+busted *.lua spec
+luacheck --std max+busted paseto spec
 busted --verbose --coverage
 luacov spec, paseto.lua
