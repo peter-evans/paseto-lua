@@ -1,5 +1,4 @@
-lua_install
 luacov.stats.out
 luacov.report.out
-*.so
 *.o
+*.so
