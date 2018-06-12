@@ -115,7 +115,7 @@ end
 function v2.sign(secret_key, message, footer)
   footer = footer or ""
   local header = PROTOCOL_VERSION .. ".public."
-  local data = v2.__pre_auth_encode(header .. message .. footer)
+  local data = v2.__pre_auth_encode(header, message, footer)
   local signature = luasodium.sign_detached(data, secret_key)
   local token = header .. basexx.to_url64(message .. signature) ..
     (#footer > 0 and "." .. basexx.to_url64(footer) or "")
@@ -135,7 +135,7 @@ function v2.verify(public_key, token, footer)
   local decoded = basexx.from_url64(string.sub(signed_payload, #header + 1))
   local message = string.sub(decoded, 1, #decoded - luasodium.SIGN_BYTES)
   local signature = string.sub(decoded, #decoded - luasodium.SIGN_BYTES + 1)
-  local data = v2.__pre_auth_encode(header .. message .. footer)
+  local data = v2.__pre_auth_encode(header, message, footer)
   local verified
   verified, err = luasodium.sign_verify_detached(data, signature, public_key)
   if not verified then
