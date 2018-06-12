@@ -1,9 +1,9 @@
 /*
  * luasodium
  * ---------
- * Description: A binding to libsodium
- * Author: Peter Evans
- * License: MIT (See LICENSE file)
+ * Description:  A binding to libsodium
+ * Author:       Peter Evans
+ * License:      MIT (See LICENSE file)
  */
 
 #include <stdlib.h>
@@ -39,8 +39,8 @@ static int ls_sodium_version(lua_State *L)
  * Returns a specified number of random bytes
  *
  * randombytes(n)
- * n (integer): The number of random bytes
- * returns (string) n random bytes
+ * n (integer):  The number of random bytes
+ * returns:      (string) n random bytes
  */
 static int ls_randombytes(lua_State *L)
 {
@@ -63,7 +63,7 @@ static int ls_randombytes(lua_State *L)
  * Returns a key pair
  *
  * sign_keypair()
- * returns (string) public key, (string) private key
+ * returns:  (string) public key, (string) private key
  */
 static int ls_sign_keypair(lua_State *L)
 {
@@ -85,10 +85,10 @@ static int ls_sign_keypair(lua_State *L)
  * Returns a specified length hash of a message
  *
  * generichash(msg, key, hashlen)
- * msg (string): The message to hash
- * key (string): The key
- * hashlen (integer): The desired length of the hash
- * returns (string) hash
+ * msg (string):       The message to hash
+ * key (string):       The key
+ * hashlen (integer):  The desired length of the hash
+ * returns:            (string) hash
  */
 static int ls_generichash(lua_State *L)
 {
@@ -114,11 +114,11 @@ static int ls_generichash(lua_State *L)
  * Encrypts a message and returns the ciphertext
  *
  * aead_encrypt(msg, ad, nonce, key)
- * msg (string): The message to hash
- * ad (string): The additional data
- * nonce (string): The nonce
- * key (string): The key
- * returns (string) ciphertext
+ * msg (string):    The message to hash
+ * ad (string):     The additional data
+ * nonce (string):  The nonce
+ * key (string):    The key
+ * returns:         (string) ciphertext
  */
 static int ls_aead_encrypt(lua_State *L)
 {
@@ -152,11 +152,11 @@ static int ls_aead_encrypt(lua_State *L)
  * Decrypts a message and returns the decrypted text
  *
  * aead_decrypt(ciphertext, ad, nonce, key)
- * ciphertext (string): The ciphertext to decrypt
- * ad (string): The additional data
- * nonce (string): The nonce
- * key (string): The key
- * returns (string) decrypted message
+ * ciphertext (string):  The ciphertext to decrypt
+ * ad (string):          The additional data
+ * nonce (string):       The nonce
+ * key (string):         The key
+ * returns:              (string) decrypted message
  */
 static int ls_aead_decrypt(lua_State *L)
 {
@@ -183,9 +183,9 @@ static int ls_aead_decrypt(lua_State *L)
  * Signs a message and returns the signature
  *
  * sign_detached(msg, sk)
- * msg (string): The message to sign
- * sk (string): The secret key
- * returns (string) signature
+ * msg (string):  The message to sign
+ * sk (string):   The secret key
+ * returns:       (string) signature
  */
 static int ls_sign_detached(lua_State *L)
 {
@@ -210,10 +210,10 @@ static int ls_sign_detached(lua_State *L)
  * Verifies a message against a signature and returns the message
  *
  * sign_verify_detached(msg, sk)
- * msg (string): The message to verify
- * sig (string): The signature to verify against
- * pk (string): The public key
- * returns (string) message
+ * msg (string):  The message to verify
+ * sig (string):  The signature to verify against
+ * pk (string):   The public key
+ * returns:       (string) message
  */
 static int ls_sign_verify_detached(lua_State *L)
 {
