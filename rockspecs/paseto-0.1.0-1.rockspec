@@ -7,7 +7,7 @@ description = {
    license = "MIT"
 }
 source = {
-   url = "https://github.com/peter-evans/paseto-lua/archive/v0.1.0.tar.gz",
+   url = "https://github.com/peter-evans/paseto-lua/archive/0.1.0.tar.gz",
    dir = "paseto-0.1.0"
 }
 dependencies = {
