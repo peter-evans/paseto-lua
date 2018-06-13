@@ -1,4 +1,6 @@
 # [PASETO](https://github.com/paragonie/paseto) (Platform-Agnostic Security Tokens) for Lua
+[![Build Status](https://travis-ci.org/peter-evans/paseto-lua.svg?branch=master)](https://travis-ci.org/peter-evans/paseto-lua)
+[![Coverage Status](https://coveralls.io/repos/github/peter-evans/paseto-lua/badge.svg?branch=master)](https://coveralls.io/github/peter-evans/paseto-lua?branch=master)
 
 Paseto (Platform-Agnostic SEcurity TOkens) is a specification and reference implementation for secure stateless tokens.
 
