@@ -90,8 +90,7 @@ function v2.generate_symmetric_key()
 end
 
 function v2.generate_asymmetric_secret_key()
-  local _, secret_key = luasodium.sign_keypair()
-  return secret_key
+  return luasodium.sign_keypair()
 end
 
 function v2.__encrypt(key, payload, footer, nonce)

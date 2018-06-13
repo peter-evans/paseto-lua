@@ -59,7 +59,7 @@ describe("luasodium", function()
   describe("sign_keypair", function()
 
     it("should generate a key pair", function()
-      local public_key, secret_key = luasodium.sign_keypair()
+      local secret_key, public_key = luasodium.sign_keypair()
       assert.equal(luasodium.SIGN_PUBLICKEYBYTES, #public_key)
       assert.equal(luasodium.SIGN_SECRETKEYBYTES, #secret_key)
       assert.equal(public_key, string.sub(secret_key, 33, 64))
@@ -123,7 +123,7 @@ describe("luasodium", function()
     local public_key, secret_key
 
     setup(function()
-      public_key, secret_key = luasodium.sign_keypair()
+      secret_key, public_key = luasodium.sign_keypair()
     end)
 
     it("should sign and verify", function()

@@ -63,12 +63,12 @@ static int ls_randombytes(lua_State *L)
  * Returns a key pair
  *
  * sign_keypair()
- * returns:  (string) public key, (string) private key
+ * returns:  (string) secret key, (string) public key
  */
 static int ls_sign_keypair(lua_State *L)
 {
-   unsigned char pk[crypto_sign_PUBLICKEYBYTES];
    unsigned char sk[crypto_sign_SECRETKEYBYTES];
+   unsigned char pk[crypto_sign_PUBLICKEYBYTES];
 
    if (crypto_sign_keypair(pk, sk))
    {
@@ -76,8 +76,8 @@ static int ls_sign_keypair(lua_State *L)
       lua_pushstring(L, "Key creation failed");
       return(2);
    }
-   lua_pushlstring(L, (char *)pk, crypto_sign_PUBLICKEYBYTES);
    lua_pushlstring(L, (char *)sk, crypto_sign_SECRETKEYBYTES);
+   lua_pushlstring(L, (char *)pk, crypto_sign_PUBLICKEYBYTES);
    return(2);
 }
 
