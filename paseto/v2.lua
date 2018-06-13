@@ -30,12 +30,13 @@ local v2 = {
 local PROTOCOL_VERSION = "v2"
 local luasodium = require("luasodium")
 local basexx = require("basexx")
+local struct = require("struct")
 
 function v2.__pre_auth_encode(...)
-  local encoded = string.pack("I8", #{...})
+  local encoded = struct.pack("<L", #{...})
   for _, piece in ipairs({...})
   do
-    encoded = encoded .. string.pack("I8", #piece) .. piece
+    encoded = encoded .. struct.pack("<L", #piece) .. piece
   end
   return encoded
 end

@@ -9,6 +9,7 @@ RUN apt-get -y update \
  && pip install hererocks \
  && hererocks $LUA_DIR -r^ --lua=$LUA_VERSION \
  && luarocks install basexx \
+ && luarocks install lua-struct \
  && luarocks install busted \
  && luarocks install luacheck \
  && luarocks install luacov

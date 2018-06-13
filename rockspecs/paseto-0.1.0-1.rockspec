@@ -12,7 +12,8 @@ source = {
 }
 dependencies = {
    "lua >= 5.1, < 5.4",
-   "basexx >= 0.4.0"
+   "basexx >= 0.4.0",
+   "lua-struct >= 0.9.0"
 }
 external_dependencies = {
    SODIUM = {
