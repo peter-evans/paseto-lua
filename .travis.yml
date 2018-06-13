@@ -1,5 +1,5 @@
 language: python
-sudo: false
+sudo: true
 
 env:
   - LUA="lua=5.1"
@@ -9,6 +9,7 @@ env:
   - LUA="luajit=2.1"
 
 before_install:
+  - wget https://download.libsodium.org/libsodium/releases/LATEST.tar.gz && tar xzf LATEST.tar.gz && pushd libsodium-stable/ && ./configure --prefix=/usr && make && make check && sudo make install && popd  
   - pip install hererocks
   - hererocks lua_install -r^ --$LUA
   - export PATH=$PATH:$PWD/lua_install/bin
@@ -27,4 +28,3 @@ script:
 after_success:
   - EXCLUDE_DIR=`echo $TRAVIS_BUILD_DIR/lua_install | sed 's/-/%-/g'`
   - luacov-coveralls --exclude $EXCLUDE_DIR
-  
