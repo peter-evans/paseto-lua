@@ -15,6 +15,8 @@ Paseto (Platform-Agnostic SEcurity TOkens) is a specification and reference impl
 - v2 local authentication (Blake2b and XChaCha20-Poly1305)
 - v2 public authentication (Ed25519 signatures)
 
+This implementation doesn't currently support the v1 protocol. However, please note that v1 is recommended only for legacy systems that cannot use modern cryptography.
+
 ## Installation
 
 This Lua module depends on the [Sodium crypto library (libsodium)](https://github.com/jedisct1/libsodium).
