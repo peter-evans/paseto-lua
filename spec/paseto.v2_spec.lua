@@ -260,4 +260,54 @@ describe("v2 protocol", function()
 
   end)
 
+  describe("readme examples", function()
+
+    describe("v2.local example", function()
+
+      it("should encrypt and decrypt", function()
+        local key, message, token, footer, decrypted
+        message = "my secret message"
+        footer = "my footer"
+
+        -- generate symmetric key
+        key = paseto.generate_symmetric_key()
+
+        -- encrypt/decrypt without footer
+        token = paseto.encrypt(key, message)
+        decrypted = paseto.decrypt(key, token)
+        assert.equal(message, decrypted)
+
+        -- encrypt/decrypt with footer
+        token = paseto.encrypt(key, message, footer)
+        decrypted = paseto.decrypt(key, token, footer)
+        assert.equal(message, decrypted)
+      end)
+
+    end)
+
+    describe("v2.public example", function()
+
+      it("should sign and verify", function()
+        local secret_key, public_key, message, token, footer, verified
+        message = "my secret message"
+        footer = "my footer"
+
+        -- generate key pair
+        secret_key, public_key = paseto.generate_asymmetric_secret_key()
+
+        -- sign/verify without footer
+        token = paseto.sign(secret_key, message)
+        verified = paseto.verify(public_key, token)
+        assert.equal(message, verified)
+
+        -- sign/verify with footer
+        token = paseto.sign(secret_key, message, footer)
+        verified = paseto.verify(public_key, token, footer)
+        assert.equal(message, verified)
+      end)
+
+    end)
+
+  end)
+
 end)
