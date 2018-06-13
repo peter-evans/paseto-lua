@@ -1,7 +1,8 @@
 /*
  * luasodium
  * ---------
- * Description:  A binding to libsodium
+ * Description:  A libsodium binding to Lua
+ *               https://libsodium.org
  * Author:       Peter Evans
  * License:      MIT (See LICENSE file)
  */
