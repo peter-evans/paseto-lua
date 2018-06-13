@@ -8,7 +8,7 @@ description = {
 }
 source = {
    url = "https://github.com/peter-evans/paseto-lua/archive/0.1.0.tar.gz",
-   dir = "paseto-0.1.0"
+   dir = "paseto-lua-0.1.0"
 }
 dependencies = {
    "lua >= 5.1, < 5.4",
