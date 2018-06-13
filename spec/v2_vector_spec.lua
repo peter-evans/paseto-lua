@@ -9,7 +9,7 @@ describe("v2 protocol official test vectors", function()
   setup(function()
     symmetric_key = basexx.from_hex("707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f")
     null_key = string.rep("\0", 32)
-    full_key = string.rep("\xff", 32)
+    full_key = basexx.from_hex(string.rep("ff", 32))
     secret_key = basexx.from_hex("b4cbfb43df4ce210727d953e4a713307fa19bb7d9f85041438d9e11b942a37741eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2")
     message1 = "{\"data\":\"this is a signed message\",\"exp\":\"2019-01-01T00:00:00+00:00\"}"
     message2 = "{\"data\":\"this is a secret message\",\"exp\":\"2019-01-01T00:00:00+00:00\"}"
