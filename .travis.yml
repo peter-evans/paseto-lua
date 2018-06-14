@@ -9,12 +9,12 @@ env:
   - LUA="luajit=2.1"
 
 before_install:
-  - wget https://download.libsodium.org/libsodium/releases/LATEST.tar.gz && tar xzf LATEST.tar.gz && pushd libsodium-stable/ && ./configure --prefix=/usr && make && make check && sudo make install && popd  
   - pip install hererocks
   - hererocks lua_install -r^ --$LUA
   - export PATH=$PATH:$PWD/lua_install/bin
 
 install:
+  - luarocks install libsodium 0.1.0
   - luarocks install luacheck
   - luarocks install busted
   - luarocks install luacov
