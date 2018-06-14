@@ -1,4 +1,5 @@
 # [PASETO](https://github.com/paragonie/paseto) (Platform-Agnostic Security Tokens) for Lua
+[![luarocks](https://img.shields.io/badge/luarocks-paseto-blue.svg)](https://luarocks.org/modules/peterevans/paseto)
 [![Build Status](https://travis-ci.org/peter-evans/paseto-lua.svg?branch=master)](https://travis-ci.org/peter-evans/paseto-lua)
 [![Coverage Status](https://coveralls.io/repos/github/peter-evans/paseto-lua/badge.svg?branch=master)](https://coveralls.io/github/peter-evans/paseto-lua?branch=master)
 
