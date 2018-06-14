@@ -22,8 +22,13 @@ This implementation doesn't currently support the v1 protocol. However, please n
 ## Installation
 
 This Lua module depends on the [Sodium crypto library (libsodium)](https://github.com/jedisct1/libsodium).
-See [libsodium's documentation](https://download.libsodium.org/doc/installation/) for installation instructions.
+The following is a convenient way to install libsodium via LuaRocks.
+I don't necessarily recommend this for production use. Please see [libsodium's documentation](https://download.libsodium.org/doc/installation/) for full installation instructions.
+```
+luarocks install libsodium
+```
 
+Then install PASETO:
 ```
 luarocks install paseto
 ```
