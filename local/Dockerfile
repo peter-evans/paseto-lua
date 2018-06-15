@@ -5,22 +5,15 @@ ENV LUA_DIR "/lua_install"
 ENV PATH "$PATH:$LUA_DIR/bin"
 
 RUN apt-get -y update \
- && apt-get install -y -qq --no-install-recommends unzip \
+ && apt-get install -y -qq --no-install-recommends sudo zip unzip \
  && pip install hererocks \
  && hererocks $LUA_DIR -r^ --lua=$LUA_VERSION \
+ && luarocks install libsodium \
  && luarocks install basexx \
  && luarocks install lua-struct \
  && luarocks install busted \
  && luarocks install luacheck \
  && luarocks install luacov
- 
-RUN wget https://download.libsodium.org/libsodium/releases/LATEST.tar.gz \
- && tar xzf LATEST.tar.gz \
- && cd libsodium-stable/ \
- && ./configure --prefix=/usr \
- && make \
- && make check \
- && make install
 
 WORKDIR /paseto
 
