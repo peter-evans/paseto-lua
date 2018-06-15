@@ -14,7 +14,7 @@ before_install:
   - export PATH=$PATH:$PWD/lua_install/bin
 
 install:
-  - luarocks install libsodium 0.1.0
+  - luarocks install libsodium
   - luarocks install luacheck
   - luarocks install busted
   - luarocks install luacov
