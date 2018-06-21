@@ -15,10 +15,15 @@ Paseto (Platform-Agnostic SEcurity TOkens) is a specification and reference impl
 | :---: | :---: | :---: | :---: |
 | :x: | :x: | :heavy_check_mark: | :heavy_check_mark: |
 
-- v2 local authentication (Blake2b and XChaCha20-Poly1305)
-- v2 public authentication (Ed25519 signatures)
+This implementation doesn't support the v1 protocol. Please note that v1 should only be used by legacy systems that cannot use modern cryptography.
 
-This implementation doesn't currently support the v1 protocol. However, please note that v1 is recommended only for legacy systems that cannot use modern cryptography.
+#### Roadmap
+- [x] v2 local authentication (Blake2b and XChaCha20-Poly1305)
+- [x] v2 public authentication (Ed25519 signatures)
+- [ ] Payload processing and registered claims validation
+- [ ] Key-ID support
+- [ ] High-level token creation API
+- [ ] API documentation
 
 ## Installation
 
