@@ -1,5 +1,5 @@
 local v2 = {
-  _VERSION     = 'paseto v0.1.0',
+  _VERSION     = 'paseto v0.2.0',
   _DESCRIPTION = 'PASETO (Platform-Agnostic Security Tokens) for Lua',
   _URL         = 'https://github.com/peter-evans/paseto-lua',
   _LICENSE     = [[
@@ -81,8 +81,23 @@ local function aead_decrypt(key, encrypted, header, footer)
   return decrypted, err
 end
 
+function v2.__encrypt(key, payload, footer, nonce)
+  nonce = nonce or ""
+  return aead_encrypt(key, payload, PROTOCOL_VERSION .. ".local.", footer, nonce)
+end
+
+-- API --
+
 function v2.get_symmetric_key_byte_length()
   return luasodium.SYMMETRIC_KEYBYTES
+end
+
+function v2.get_asymmetric_public_key_byte_length()
+  return luasodium.SIGN_PUBLICKEYBYTES
+end
+
+function v2.get_asymmetric_secret_key_byte_length()
+  return luasodium.SIGN_SECRETKEYBYTES
 end
 
 function v2.generate_symmetric_key()
@@ -91,11 +106,6 @@ end
 
 function v2.generate_asymmetric_secret_key()
   return luasodium.sign_keypair()
-end
-
-function v2.__encrypt(key, payload, footer, nonce)
-  nonce = nonce or ""
-  return aead_encrypt(key, payload, PROTOCOL_VERSION .. ".local.", footer, nonce)
 end
 
 function v2.encrypt(key, payload, footer)
