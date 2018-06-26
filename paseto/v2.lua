@@ -96,6 +96,17 @@ local function split_token(token)
   return t
 end
 
+local function extract_token_parts(token)
+  if type(token) ~= "string" then
+    return nil, "Invalid token format"
+  end
+  local token_parts = split_token(token)
+  if #token_parts < 3 then
+    return nil, "Invalid token format"
+  end
+  return token_parts
+end
+
 -- API --
 
 function v2.get_symmetric_key_byte_length()
@@ -119,15 +130,22 @@ function v2.generate_asymmetric_secret_key()
 end
 
 function v2.extract_version_purpose(token)
-  if type(token) ~= "string" then
-    return nil, nil, "Invalid token format"
+  local token_parts, err = extract_token_parts(token)
+  if token_parts == nil then
+    return nil, nil, err
   end
-  local token_parts = split_token(token)
-  if #token_parts >= 3 then
-    return token_parts[1], token_parts[2]
-  else
-    return nil, nil, "Invalid token format"
+  return token_parts[1], token_parts[2]
+end
+
+function v2.extract_footer_claims(token)
+  local token_parts, err = extract_token_parts(token)
+  if token_parts == nil then
+    return nil, err
   end
+  if #token_parts < 4 then
+    return ""
+  end
+  return basexx.from_url64(token_parts[4])
 end
 
 function v2.encrypt(key, payload, footer)
