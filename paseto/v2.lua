@@ -86,6 +86,16 @@ function v2.__encrypt(key, payload, footer, nonce)
   return aead_encrypt(key, payload, PROTOCOL_VERSION .. ".local.", footer, nonce)
 end
 
+local function split_token(token)
+  local t = {}
+  local i = 1
+  for str in string.gmatch(token, "[^.]+") do
+    t[i] = str
+    i = i + 1
+  end
+  return t
+end
+
 -- API --
 
 function v2.get_symmetric_key_byte_length()
@@ -106,6 +116,18 @@ end
 
 function v2.generate_asymmetric_secret_key()
   return luasodium.sign_keypair()
+end
+
+function v2.extract_version_purpose(token)
+  if type(token) ~= "string" then
+    return nil, nil, "Invalid token format"
+  end
+  local token_parts = split_token(token)
+  if #token_parts >= 3 then
+    return token_parts[1], token_parts[2]
+  else
+    return nil, nil, "Invalid token format"
+  end
 end
 
 function v2.encrypt(key, payload, footer)

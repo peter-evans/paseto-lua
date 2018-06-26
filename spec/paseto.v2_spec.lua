@@ -73,6 +73,45 @@ describe("v2 protocol", function()
 
   end)
 
+  describe("extract version and purpose", function()
+    local key, secret_key, message
+
+    setup(function()
+      key = paseto.generate_symmetric_key()
+      secret_key = paseto.generate_asymmetric_secret_key()
+      message = "test"
+    end)
+
+    it("should extract the version and purpose from a 'local' token", function()
+      local token = paseto.encrypt(key, message)
+      local version, purpose = paseto.extract_version_purpose(token)
+      assert.equal("v2", version)
+      assert.equal("local", purpose)
+    end)
+
+    it("should extract the version and purpose from a 'public' token", function()
+      local token = paseto.sign(secret_key, message)
+      local version, purpose = paseto.extract_version_purpose(token)
+      assert.equal("v2", version)
+      assert.equal("public", purpose)
+    end)
+
+    it("should raise error 'Invalid token format' for malformed tokens", function()
+      local version, purpose, err = paseto.extract_version_purpose("v2.public")
+      assert.equal(nil, version)
+      assert.equal(nil, purpose)
+      assert.equal("Invalid token format", err)
+    end)
+
+    it("should raise error 'Invalid token format' for nil values", function()
+      local version, purpose, err = paseto.extract_version_purpose()
+      assert.equal(nil, version)
+      assert.equal(nil, purpose)
+      assert.equal("Invalid token format", err)
+    end)
+
+  end)
+
   describe("authenticated encryption", function()
 
     local key, message, footer
