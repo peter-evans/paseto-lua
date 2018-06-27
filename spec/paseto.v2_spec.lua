@@ -113,25 +113,26 @@ describe("v2 protocol", function()
   end)
 
   describe("extract footer claims", function()
-    local key, secret_key, message, footer
+    local key, secret_key, message, kid, footer
 
     setup(function()
       key = paseto.generate_symmetric_key()
       secret_key = paseto.generate_asymmetric_secret_key()
       message = "test"
+      kid = "zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN"
       footer = "{\"kid\":\"zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN\"}"
     end)
 
     it("should extract the footer claims from a 'local' token", function()
       local token = paseto.encrypt(key, message, footer)
       local footer_claims = paseto.extract_footer_claims(token)
-      assert.equal(footer, footer_claims)
+      assert.equal(kid, footer_claims.kid)
     end)
 
     it("should extract the footer claims from a 'public' token", function()
       local token = paseto.sign(secret_key, message, footer)
       local footer_claims = paseto.extract_footer_claims(token)
-      assert.equal(footer, footer_claims)
+      assert.equal(kid, footer_claims.kid)
     end)
 
     it("should return an empty string for tokens without a footer", function()

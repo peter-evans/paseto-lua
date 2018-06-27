@@ -30,6 +30,7 @@ local v2 = {
 local luasodium = require "luasodium"
 local basexx = require "basexx"
 local struct = require "struct"
+local json = require "cjson"
 
 local PROTOCOL_VERSION = "v2"
 
@@ -108,6 +109,16 @@ local function extract_token_parts(token)
   return token_parts
 end
 
+local function decode_json(data)
+  local ok, decoded = pcall(function()
+    return json.decode(data)
+  end)
+  if not ok then
+    return nil, "Invalid JSON"
+  end
+  return decoded
+end
+
 -- API --
 
 function v2.get_symmetric_key_byte_length()
@@ -146,7 +157,11 @@ function v2.extract_footer_claims(token)
   if #token_parts < 4 then
     return ""
   end
-  return basexx.from_url64(token_parts[4])
+  local footer_claims, err = decode_json(basexx.from_url64(token_parts[4]))
+  if footer_claims == nil then
+    return nil, err
+  end
+  return footer_claims
 end
 
 function v2.encrypt(key, payload, footer)
