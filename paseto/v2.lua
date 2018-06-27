@@ -27,10 +27,11 @@ local v2 = {
   ]]
 }
 
+local luasodium = require "luasodium"
+local basexx = require "basexx"
+local struct = require "struct"
+
 local PROTOCOL_VERSION = "v2"
-local luasodium = require("luasodium")
-local basexx = require("basexx")
-local struct = require("struct")
 
 function v2.__pre_auth_encode(...)
   local encoded = struct.pack("<L", #{...})
