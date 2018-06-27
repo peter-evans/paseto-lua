@@ -6,7 +6,7 @@ env:
   - LUA="lua=5.2"       COMPAT="default"
   - LUA="lua=5.3"       COMPAT="all"
   - LUA="luajit=2.0"    COMPAT="default"
-  - LUA="luajit=2.1"    COMPAT="default"
+  - LUA="luajit=2.1"    COMPAT="all"
 
 before_install:
   - pip install hererocks
