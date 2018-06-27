@@ -1,5 +1,6 @@
 local paseto = require "paseto.v2"
 local basexx = require "basexx"
+local json = require "cjson"
 
 describe("v2 protocol official test vectors", function()
 
@@ -15,7 +16,7 @@ describe("v2 protocol official test vectors", function()
     message2 = "{\"data\":\"this is a secret message\",\"exp\":\"2019-01-01T00:00:00+00:00\"}"
     message3 = "{\"data\":\"this is a signed message\",\"expires\":\"2019-01-01T00:00:00+00:00\"}"
     footer1 = ""
-    footer2 = "{\"kid\":\"zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN\"}"
+    footer2 = json.encode({ kid = "zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN" })
     nonce1 = string.rep("\0", 24)
     nonce2 = basexx.from_hex("45742c976d684ff84ebdc0de59809a97cda2f64c84fda19b")
   end)
