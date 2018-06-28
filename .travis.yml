@@ -2,15 +2,15 @@ language: python
 sudo: true
 
 env:
-  - LUA="lua=5.1"
-  - LUA="lua=5.2"
-  - LUA="lua=5.3"
-  - LUA="luajit=2.0"
-  - LUA="luajit=2.1"
+  - LUA="lua=5.1"       COMPAT="default"    CJSON_VERSION="2.1.0"
+  - LUA="lua=5.2"       COMPAT="default"    CJSON_VERSION="2.1.0"
+  - LUA="lua=5.3"       COMPAT="all"        CJSON_VERSION="2.1.0"
+  - LUA="luajit=2.0"    COMPAT="default"    CJSON_VERSION="2.1.0"
+  - LUA="luajit=2.1"    COMPAT="default"    CJSON_VERSION="2.1.0.6"
 
 before_install:
   - pip install hererocks
-  - hererocks lua_install -r^ --$LUA
+  - hererocks lua_install -r^ --$LUA --compat=$COMPAT
   - export PATH=$PATH:$PWD/lua_install/bin
 
 install:
@@ -19,6 +19,7 @@ install:
   - luarocks install busted
   - luarocks install luacov
   - luarocks install luacov-coveralls
+  - luarocks install lua-cjson $CJSON_VERSION
   - luarocks make
 
 script:

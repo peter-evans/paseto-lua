@@ -1,4 +1,4 @@
-local paseto = require "paseto.v2"
+local paseto = require "paseto.v2.core"
 local basexx = require "basexx"
 
 describe("v2 protocol official test vectors", function()
