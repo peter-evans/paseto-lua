@@ -43,6 +43,7 @@ This module also has a dependency on [lua-cjson](https://luarocks.org/modules/op
 Due to an issue with the latest version you might need to specify an earlier stable version.
 If you let luarocks install this dependency for you when installing PASETO you might experience problems.
 Additionally, if using Lua 5.3 you need to build Lua with a compatibility flag for Lua 5.1.
+
 | Lua Environment | Lua CJSON install | Lua compatibility flags |
 | :---: | :---: | :---: |
 | 5.1 | `luarocks install lua-cjson 2.1.0` | |
@@ -50,6 +51,7 @@ Additionally, if using Lua 5.3 you need to build Lua with a compatibility flag f
 | 5.3 | `luarocks install lua-cjson 2.1.0` | -DLUA_COMPAT_5_1 |
 | Lua JIT 2.0 | `luarocks install lua-cjson 2.1.0` | |
 | Lua JIT 2.1 | `luarocks install lua-cjson 2.1.0.6` | |
+
 See this repository's [Travis CI configuration](.travis.yml) for build configurations.
 
 #### PASETO
