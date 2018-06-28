@@ -7,13 +7,13 @@ describe("v2 protocol", function()
 
     it("should generate a symmetric key", function()
       local symmetric = paseto.generate_symmetric_key()
-      assert.equal(paseto.get_symmetric_key_byte_length(), #symmetric)
+      assert.equal(paseto.SYMMETRIC_KEY_BYTES, #symmetric)
     end)
 
     it("should generate an asymmetric key", function()
       local secret_key, public_key = paseto.generate_asymmetric_secret_key()
-      assert.equal(paseto.get_asymmetric_secret_key_byte_length(), #secret_key)
-      assert.equal(paseto.get_asymmetric_public_key_byte_length(), #public_key)
+      assert.equal(paseto.ASYMMETRIC_SECRET_KEY_BYTES, #secret_key)
+      assert.equal(paseto.ASYMMETRIC_PUBLIC_KEY_BYTES, #public_key)
     end)
 
   end)

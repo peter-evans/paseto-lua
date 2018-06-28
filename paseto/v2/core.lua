@@ -110,20 +110,12 @@ end
 
 -- API --
 
-function v2.get_symmetric_key_byte_length()
-  return luasodium.SYMMETRIC_KEYBYTES
-end
-
-function v2.get_asymmetric_public_key_byte_length()
-  return luasodium.SIGN_PUBLICKEYBYTES
-end
-
-function v2.get_asymmetric_secret_key_byte_length()
-  return luasodium.SIGN_SECRETKEYBYTES
-end
+v2.SYMMETRIC_KEY_BYTES = luasodium.SYMMETRIC_KEYBYTES
+v2.ASYMMETRIC_PUBLIC_KEY_BYTES = luasodium.SIGN_PUBLICKEYBYTES
+v2.ASYMMETRIC_SECRET_KEY_BYTES = luasodium.SIGN_SECRETKEYBYTES
 
 function v2.generate_symmetric_key()
-  return luasodium.randombytes(luasodium.SYMMETRIC_KEYBYTES)
+  return luasodium.randombytes(v2.SYMMETRIC_KEY_BYTES)
 end
 
 function v2.generate_asymmetric_secret_key()
