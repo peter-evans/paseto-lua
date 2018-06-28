@@ -33,6 +33,7 @@ build = {
          incdirs   = { "$(SODIUM_INCDIR)" },
          libdirs   = { "$(SODIUM_LIBDIR)" }
       },
-      ["paseto.v2"] = "paseto/v2.lua"
+      ["paseto.v2"] = "paseto/v2.lua",
+      ["paseto.v2.core"] = "paseto/v2/core.lua"
    }
 }
