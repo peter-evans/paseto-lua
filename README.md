@@ -44,7 +44,7 @@ Due to an issue with the latest version you might need to specify an earlier sta
 If you let luarocks install this dependency for you when installing PASETO you might experience problems.
 Additionally, if using Lua 5.3 you need to build Lua with a compatibility flag for Lua 5.1.
 
-| Lua Environment | Lua CJSON install | Lua compatibility flags |
+| Lua | Lua CJSON install | Lua compatibility flags |
 | :---: | :---: | :---: |
 | 5.1 | `luarocks install lua-cjson 2.1.0` | |
 | 5.2 | `luarocks install lua-cjson 2.1.0` | |
@@ -55,7 +55,7 @@ Additionally, if using Lua 5.3 you need to build Lua with a compatibility flag f
 See this repository's [Travis CI configuration](.travis.yml) for build configurations.
 
 #### PASETO
-Finally install PASETO:
+Finally, install PASETO:
 ```
 luarocks install paseto
 ```
