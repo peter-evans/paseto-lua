@@ -71,15 +71,15 @@ end
 function v2.extract_footer_claims(token)
   local footer, err = paseto.extract_footer(token)
   if footer == nil then
-    return nil, err
+    return nil, nil, err
   end
   if footer == "" then
-    return {}
+    return {}, footer
   end
   local footer_claims
   footer_claims, err = decode_json(footer)
   if footer_claims == nil then
-    return nil, err
+    return nil, nil, err
   end
   return footer_claims, footer
 end

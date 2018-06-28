@@ -1,54 +1,60 @@
 local paseto = require "paseto.v2"
+local basexx = require "basexx"
 
 describe("v2 protocol", function()
 
---[[
   describe("extract footer claims", function()
-    local key, secret_key, message, kid, footer
+    local key, secret_key, payload_claims, footer_claims
 
     setup(function()
       key = paseto.generate_symmetric_key()
       secret_key = paseto.generate_asymmetric_secret_key()
-      message = "{\"message\":\"test\"}"
-      kid = "zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN"
-      footer = "{\"kid\":\"zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN\"}"
+      payload_claims = { message = "test" }
+      footer_claims = { kid = "123456789" }
     end)
 
     it("should extract the footer claims from a 'local' token", function()
-      local token = paseto.encrypt(key, message, footer)
-      local footer_claims = paseto.extract_footer_claims(token)
-      assert.equal("table", type(footer_claims))
-      assert.equal(kid, footer_claims.kid)
+      local token = paseto.encrypt(key, payload_claims, footer_claims)
+      local extracted_footer_claims = paseto.extract_footer_claims(token)
+      assert.equal("table", type(extracted_footer_claims))
+      assert.equal(footer_claims.kid, extracted_footer_claims.kid)
     end)
 
     it("should extract the footer claims from a 'public' token", function()
-      local token = paseto.sign(secret_key, message, footer)
-      local footer_claims = paseto.extract_footer_claims(token)
-      assert.equal("table", type(footer_claims))
-      assert.equal(kid, footer_claims.kid)
+      local token = paseto.sign(secret_key, payload_claims, footer_claims)
+      local extracted_footer_claims = paseto.extract_footer_claims(token)
+      assert.equal("table", type(extracted_footer_claims))
+      assert.equal(footer_claims.kid, extracted_footer_claims.kid)
     end)
 
     it("should return an empty table for tokens without a footer", function()
-      local token = paseto.sign(secret_key, message)
-      local footer_claims = paseto.extract_footer_claims(token)
-      assert.equal("table", type(footer_claims))
-      assert.equal(#{}, #footer_claims)
+      local token = paseto.sign(secret_key, payload_claims)
+      local extracted_footer_claims = paseto.extract_footer_claims(token)
+      assert.equal("table", type(extracted_footer_claims))
+      assert.equal(#{}, #extracted_footer_claims)
     end)
 
     it("should raise error 'Invalid token format' for malformed tokens", function()
-      local footer_claims, err = paseto.extract_footer_claims("v2.public")
-      assert.equal(nil, footer_claims)
+      local extracted_footer_claims, _, err = paseto.extract_footer_claims("v2.public")
+      assert.equal(nil, extracted_footer_claims)
       assert.equal("Invalid token format", err)
     end)
 
+    it("should raise error 'Invalid JSON'", function()
+      local malformed_footer = basexx.to_url64("test")
+      local extracted_footer_claims, _, err = paseto.extract_footer_claims("v2.public.abc." .. malformed_footer)
+      assert.equal(nil, extracted_footer_claims)
+      assert.equal("Invalid JSON", err)
+    end)
+
     it("should raise error 'Invalid token format' for nil values", function()
-      local footer_claims, err = paseto.extract_footer_claims()
-      assert.equal(nil, footer_claims)
+      local extracted_footer_claims, _, err = paseto.extract_footer_claims()
+      assert.equal(nil, extracted_footer_claims)
       assert.equal("Invalid token format", err)
     end)
 
   end)
---]]
+
   describe("readme examples for the standard API", function()
 
     describe("v2.local example", function()
