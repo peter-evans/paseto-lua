@@ -102,20 +102,46 @@ function v2.encrypt(key, payload_claims, footer_claims)
 end
 
 function v2.decrypt(key, token, footer)
-  local decrypted = paseto.decrypt(key, token, footer)
-  local payload_claims, err = decode_json(decrypted)
+  local err, decrypted, payload_claims
+  decrypted, err = paseto.decrypt(key, token, footer)
+  if decrypted == nil then
+    return nil, err
+  end
+  payload_claims, err = decode_json(decrypted)
   if payload_claims == nil then
     return nil, err
   end
   return payload_claims
 end
 
-function v2.sign(secret_key, message, footer)
-  return paseto.sign(secret_key, message, footer)
+function v2.sign(secret_key, payload_claims, footer_claims)
+  local payload, footer
+  payload = encode_json(payload_claims)
+  if payload == nil then
+    return nil, "Invalid payload claims"
+  end
+  if footer_claims == nil then
+    footer = ""
+  else
+    footer = encode_json(footer_claims)
+    if footer == nil then
+      return nil, "Invalid footer claims"
+    end
+  end
+  return paseto.sign(secret_key, payload, footer)
 end
 
 function v2.verify(public_key, token, footer)
-  return paseto.verify(public_key, token, footer)
+  local err, verified_claims, payload_claims
+  verified_claims, err = paseto.verify(public_key, token, footer)
+  if verified_claims == nil then
+    return nil, err
+  end
+  payload_claims, err = decode_json(verified_claims)
+  if payload_claims == nil then
+    return nil, err
+  end
+  return payload_claims
 end
 
 return v2
