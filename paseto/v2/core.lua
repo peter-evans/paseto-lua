@@ -102,7 +102,7 @@ local function extract_token_parts(token)
     return nil, "Invalid token format"
   end
   local token_parts = split_token(token)
-  if #token_parts < 3 then
+  if #token_parts < 3 or #token_parts > 4 then
     return nil, "Invalid token format"
   end
   return token_parts
