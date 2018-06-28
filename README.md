@@ -52,7 +52,7 @@ Additionally, if using Lua 5.3 you need to build Lua with a compatibility flag f
 | Lua JIT 2.0 | `luarocks install lua-cjson 2.1.0` | |
 | Lua JIT 2.1 | `luarocks install lua-cjson 2.1.0.6` | |
 
-See this repository's [Travis CI configuration](.travis.yml) for build configurations.
+See [.travis.yml](.travis.yml) for build configurations.
 
 #### PASETO
 Finally, install PASETO:
