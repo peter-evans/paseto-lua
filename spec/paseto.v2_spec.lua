@@ -2,13 +2,14 @@ local paseto = require "paseto.v2"
 
 describe("v2 protocol", function()
 
+--[[
   describe("extract footer claims", function()
     local key, secret_key, message, kid, footer
 
     setup(function()
       key = paseto.generate_symmetric_key()
       secret_key = paseto.generate_asymmetric_secret_key()
-      message = "test"
+      message = "{\"message\":\"test\"}"
       kid = "zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN"
       footer = "{\"kid\":\"zVhMiPBP9fRf2snEcT7gFTioeA9COcNy9DfgL1W60haN\"}"
     end)
@@ -47,28 +48,37 @@ describe("v2 protocol", function()
     end)
 
   end)
-
+--]]
   describe("readme examples", function()
 
     describe("v2.local example", function()
 
       it("should encrypt and decrypt", function()
-        local key, message, token, footer, decrypted
-        message = "my secret message"
-        footer = "my footer"
+        local key, payload_claims, token, footer_claims, extracted_footer_claims, extracted_footer, decrypted_claims
+        payload_claims = {}
+        payload_claims["clientid"] = 100099
+        payload_claims["message"] = "secret"
+        footer_claims = { kid = "123456789" }
 
         -- generate symmetric key
         key = paseto.generate_symmetric_key()
 
         -- encrypt/decrypt without footer
-        token = paseto.encrypt(key, message)
-        decrypted = paseto.decrypt(key, token)
-        assert.equal(message, decrypted)
+        token = paseto.encrypt(key, payload_claims)
+        decrypted_claims = paseto.decrypt(key, token)
+        assert.equal(#payload_claims, #decrypted_claims)
+        assert.equal(payload_claims.clientid, decrypted_claims.clientid)
+        assert.equal(payload_claims.message, decrypted_claims.message)
 
         -- encrypt/decrypt with footer
-        token = paseto.encrypt(key, message, footer)
-        decrypted = paseto.decrypt(key, token, footer)
-        assert.equal(message, decrypted)
+        token = paseto.encrypt(key, payload_claims, footer_claims)
+        extracted_footer_claims, extracted_footer = paseto.extract_footer_claims(token)
+        assert.equal(#footer_claims, #extracted_footer_claims)
+        assert.equal(footer_claims.kid, extracted_footer_claims.kid)
+        decrypted_claims = paseto.decrypt(key, token, extracted_footer)
+        assert.equal(#payload_claims, #decrypted_claims)
+        assert.equal(payload_claims.clientid, decrypted_claims.clientid)
+        assert.equal(payload_claims.message, decrypted_claims.message)
       end)
 
     end)

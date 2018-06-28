@@ -30,6 +30,16 @@ local v2 = {
 local paseto = require "paseto.v2.core"
 local json = require "cjson"
 
+local function encode_json(data)
+  local ok, encoded = pcall(function()
+    return json.encode(data)
+  end)
+  if not ok then
+    return nil, "Invalid data"
+  end
+  return encoded
+end
+
 local function decode_json(data)
   local ok, decoded = pcall(function()
     return json.decode(data)
@@ -71,15 +81,33 @@ function v2.extract_footer_claims(token)
   if footer_claims == nil then
     return nil, err
   end
-  return footer_claims
+  return footer_claims, footer
 end
 
-function v2.encrypt(key, payload, footer)
+function v2.encrypt(key, payload_claims, footer_claims)
+  local payload, footer
+  payload = encode_json(payload_claims)
+  if payload == nil then
+    return nil, "Invalid payload claims"
+  end
+  if footer_claims == nil then
+    footer = ""
+  else
+    footer = encode_json(footer_claims)
+    if footer == nil then
+      return nil, "Invalid footer claims"
+    end
+  end
   return paseto.encrypt(key, payload, footer)
 end
 
 function v2.decrypt(key, token, footer)
-  return paseto.decrypt(key, token, footer)
+  local decrypted = paseto.decrypt(key, token, footer)
+  local payload_claims, err = decode_json(decrypted)
+  if payload_claims == nil then
+    return nil, err
+  end
+  return payload_claims
 end
 
 function v2.sign(secret_key, message, footer)
