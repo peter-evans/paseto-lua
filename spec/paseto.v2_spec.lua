@@ -1,7 +1,7 @@
 local paseto = require "paseto.v2"
 local basexx = require "basexx"
 
-describe("v2 protocol", function()
+describe("v2 protocol standard API", function()
 
   describe("extract footer claims", function()
     local key, secret_key, payload_claims, footer_claims
@@ -51,6 +51,89 @@ describe("v2 protocol", function()
       local extracted_footer_claims, _, err = paseto.extract_footer_claims()
       assert.equal(nil, extracted_footer_claims)
       assert.equal("Invalid token format", err)
+    end)
+
+  end)
+
+  describe("authenticated encryption", function()
+
+    local key, payload_claims, footer_claims
+
+    setup(function()
+      key = paseto.generate_symmetric_key()
+      payload_claims = {}
+      payload_claims["data"] = "this is a signed message"
+      payload_claims["expires"] = os.date("%Y") .. "-01-01T00:00:00+00:00"
+      footer_claims = { kid = "123456789" }
+    end)
+
+    it("should encrypt and decrypt payload claims without footer", function()
+      local token = paseto.encrypt(key, payload_claims)
+      assert.equal("string", type(token))
+      assert.equal("v2.local.", string.sub(token, 1, 9))
+
+      local decrypted_claims = paseto.decrypt(key, token)
+      assert.equal("table", type(decrypted_claims))
+      assert.equal(#payload_claims, #decrypted_claims)
+      assert.equal(payload_claims.data, decrypted_claims.data)
+      assert.equal(payload_claims.expires, decrypted_claims.expires)
+    end)
+
+    it("should encrypt and decrypt payload claims with footer", function()
+      local token = paseto.encrypt(key, payload_claims, footer_claims)
+      assert.equal("string", type(token))
+      assert.equal("v2.local.", string.sub(token, 1, 9))
+
+      local _, extracted_footer = paseto.extract_footer_claims(token)
+      local decrypted_claims = paseto.decrypt(key, token, extracted_footer)
+      assert.equal("table", type(decrypted_claims))
+      assert.equal(#payload_claims, #decrypted_claims)
+      assert.equal(payload_claims.data, decrypted_claims.data)
+      assert.equal(payload_claims.expires, decrypted_claims.expires)
+    end)
+
+    it("should raise error 'Invalid payload claims'", function()
+      local token, err = paseto.encrypt(key, "invalid")
+      assert.equal(nil, token)
+      assert.equal("Invalid payload claims", err)
+    end)
+
+    it("should raise error 'Invalid footer claims'", function()
+      local token, err = paseto.encrypt(key, payload_claims, "invalid")
+      assert.equal(nil, token)
+      assert.equal("Invalid footer claims", err)
+    end)
+
+    it("should raise error 'Invalid key size'", function()
+      local token, err = paseto.encrypt("\0", payload_claims)
+      assert.equal(nil, token)
+      assert.equal("Invalid key size", err)
+    end)
+
+    it("should raise error 'Invalid message header'", function()
+      local decrypt, err = paseto.decrypt(key, "invalid")
+      assert.equal(nil, decrypt)
+      assert.equal("Invalid message header", err)
+    end)
+
+    it("should raise error 'Message forged'", function()
+      local decrypt, err = paseto.decrypt(key, "v2.local.forged")
+      assert.equal(nil, decrypt)
+      assert.equal("Message forged", err)
+    end)
+
+    it("should raise error 'Message forged'", function()
+      local token = paseto.encrypt(key, payload_claims)
+      local decrypt, err = paseto.decrypt("\0", token)
+      assert.equal(nil, decrypt)
+      assert.equal("Message forged", err)
+    end)
+
+    it("should raise error 'Invalid message footer'", function()
+      local token = paseto.encrypt(key, payload_claims)
+      local decrypt, err = paseto.decrypt(key, token, "footer")
+      assert.equal(nil, decrypt)
+      assert.equal("Invalid message footer", err)
     end)
 
   end)

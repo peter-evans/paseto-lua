@@ -1,7 +1,7 @@
 local paseto = require "paseto.v2.core"
 local basexx = require "basexx"
 
-describe("v2 protocol", function()
+describe("v2 protocol core", function()
 
   describe("key generation", function()
 
@@ -209,13 +209,13 @@ describe("v2 protocol", function()
       end)
 
       it("should raise error 'Invalid message header'", function()
-        local decrypt, err = paseto.decrypt(key, message)
+        local decrypt, err = paseto.decrypt(key, "invalid")
         assert.equal(nil, decrypt)
         assert.equal("Invalid message header", err)
       end)
 
       it("should raise error 'Message forged'", function()
-        local decrypt, err = paseto.decrypt(key, "v2.local." .. message)
+        local decrypt, err = paseto.decrypt(key, "v2.local.forged")
         assert.equal(nil, decrypt)
         assert.equal("Message forged", err)
       end)
