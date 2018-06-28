@@ -52,6 +52,7 @@ describe("v2 protocol core", function()
   end)
 
   describe("validate and remove footer", function()
+
     local payload, footer, token
 
     setup(function()
@@ -74,6 +75,7 @@ describe("v2 protocol core", function()
   end)
 
   describe("extract version and purpose", function()
+
     local key, secret_key, message
 
     setup(function()
@@ -120,6 +122,7 @@ describe("v2 protocol core", function()
   end)
 
   describe("extract footer", function()
+
     local key, secret_key, message, footer
 
     setup(function()
@@ -220,7 +223,7 @@ describe("v2 protocol core", function()
         assert.equal("Message forged", err)
       end)
 
-      it("should raise error 'Message forged'", function()
+      it("should raise error 'Message forged' when key is invalid", function()
         local token = paseto.encrypt(key, message)
         local decrypt, err = paseto.decrypt("\0", token)
         assert.equal(nil, decrypt)
@@ -272,8 +275,7 @@ describe("v2 protocol core", function()
     local secret_key, public_key, message, footer
 
     setup(function()
-      secret_key = paseto.generate_asymmetric_secret_key()
-      public_key = string.sub(secret_key, 33, 64)
+      secret_key, public_key = paseto.generate_asymmetric_secret_key()
       footer = "footer"
     end)
 
