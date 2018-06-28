@@ -49,7 +49,7 @@ describe("v2 protocol", function()
 
   end)
 --]]
-  describe("readme examples", function()
+  describe("readme examples for the standard API", function()
 
     describe("v2.local example", function()
 
