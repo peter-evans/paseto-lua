@@ -19,4 +19,4 @@ RUN apt-get -y update \
 
 WORKDIR /paseto
 
-CMD [ "./local/docker-cmd.sh" ]
+CMD [ "./.dev/docker-cmd.sh" ]
