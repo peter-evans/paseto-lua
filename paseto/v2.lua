@@ -50,16 +50,46 @@ local function decode_json(data)
   return decoded
 end
 
+local function claim_comparison(payload_claims, key, value)
+  if payload_claims[key] == nil then
+    return false, "Missing required claim '" .. key .."'"
+  elseif payload_claims[key] ~= value then
+    return false, "Claim '" .. key .."' does not match the expected value"
+  end
+  return true
+end
+
+local registered_claims = {
+  ForAudience = function(payload_claims, _, value)
+    return claim_comparison(payload_claims, "aud", value)
+  end,
+  IdentifiedBy = function(payload_claims, _, value)
+    return claim_comparison(payload_claims, "jti", value)
+  end,
+  IssuedBy = function(payload_claims, _, value)
+    return claim_comparison(payload_claims, "iss", value)
+  end,
+  Subject = function(payload_claims, _, value)
+    return claim_comparison(payload_claims, "sub", value)
+  end
+}
+
 local function validate_claims(payload_claims, claim_rules)
   if type(claim_rules) ~= "table" then
     return false, "Invalid claim rules format"
   end
 
   for key, value in pairs(claim_rules) do
-    if payload_claims[key] == nil then
-      return false, "Missing required claim '" .. key .."'"
-    elseif payload_claims[key] ~= value then
-      return false, "Claim '" .. key .."' does not match the expected value"
+    if registered_claims[key] ~= nil then
+      local valid, err = registered_claims[key](payload_claims, key, value)
+      if valid == false then
+        return false, err
+      end
+    else
+      local valid, err = claim_comparison(payload_claims, key, value)
+      if valid == false then
+        return false, err
+      end
     end
   end
 

@@ -158,6 +158,25 @@ describe("v2 protocol standard API", function()
         assert.equal(payload_claims.expires, decrypted_claims.expires)
       end)
 
+      it("should encrypt and decrypt payload claims successfully with registered claims validation", function()
+        payload_claims["iss"] = "paragonie.com"
+        payload_claims["jti"] = "87IFSGFgPNtQNNuw0AtuLttP"
+        payload_claims["aud"] = "some-audience.com"
+        payload_claims["sub"] = "test"
+        local token = paseto.encrypt(key, payload_claims)
+        local claim_rules = {
+          ForAudience = "some-audience.com",
+          IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
+          IssuedBy = "paragonie.com",
+          Subject = "test"
+        }
+        local decrypted_claims = paseto.decrypt(key, token, claim_rules)
+        assert.equal("table", type(decrypted_claims))
+        assert.equal(#payload_claims, #decrypted_claims)
+        assert.equal(payload_claims.data, decrypted_claims.data)
+        assert.equal(payload_claims.expires, decrypted_claims.expires)
+      end)
+
       it("should raise error 'Invalid claim rules format'", function()
         local token = paseto.encrypt(key, payload_claims)
         local claim_rules = "invalid format"
@@ -180,6 +199,15 @@ describe("v2 protocol standard API", function()
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Claim 'myclaim' does not match the expected value", err)
+      end)
+
+      it("should raise error 'Claim 'aud' does not match the expected value' when validating rule 'ForAudience'", function()
+        payload_claims["aud"] = "some-other-audience.com"
+        local token = paseto.encrypt(key, payload_claims)
+        local claim_rules = { ForAudience = "some-audience.com" }
+        local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
+        assert.equal(nil, decrypted_claims)
+        assert.equal("Claim 'aud' does not match the expected value", err)
       end)
 
     end)
@@ -275,6 +303,25 @@ describe("v2 protocol standard API", function()
         assert.equal(payload_claims.expires, verified_claims.expires)
       end)
 
+      it("should encrypt and decrypt payload claims successfully with registered claims validation", function()
+        payload_claims["iss"] = "paragonie.com"
+        payload_claims["jti"] = "87IFSGFgPNtQNNuw0AtuLttP"
+        payload_claims["aud"] = "some-audience.com"
+        payload_claims["sub"] = "test"
+        local token = paseto.sign(secret_key, payload_claims)
+        local claim_rules = {
+          ForAudience = "some-audience.com",
+          IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
+          IssuedBy = "paragonie.com",
+          Subject = "test"
+        }
+        local verified_claims = paseto.verify(public_key, token, claim_rules)
+        assert.equal("table", type(verified_claims))
+        assert.equal(#payload_claims, #verified_claims)
+        assert.equal(payload_claims.data, verified_claims.data)
+        assert.equal(payload_claims.expires, verified_claims.expires)
+      end)
+
       it("should raise error 'Invalid claim rules format'", function()
         local token = paseto.sign(secret_key, payload_claims)
         local claim_rules = "invalid format"
@@ -297,6 +344,15 @@ describe("v2 protocol standard API", function()
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Claim 'myclaim' does not match the expected value", err)
+      end)
+
+      it("should raise error 'Claim 'aud' does not match the expected value' when validating rule 'ForAudience'", function()
+        payload_claims["aud"] = "some-other-audience.com"
+        local token = paseto.sign(secret_key, payload_claims)
+        local claim_rules = { ForAudience = "some-audience.com" }
+        local verified_claims, err = paseto.verify(public_key, token, claim_rules)
+        assert.equal(nil, verified_claims)
+        assert.equal("Claim 'aud' does not match the expected value", err)
       end)
 
     end)
