@@ -29,6 +29,7 @@ local v2 = {
 
 local paseto = require "paseto.v2.core"
 local json = require "cjson"
+local date = require "date"
 
 local function encode_json(data)
   local ok, encoded = pcall(function()
@@ -60,17 +61,26 @@ local function claim_comparison(payload_claims, key, value)
 end
 
 local registered_claims = {
-  ForAudience = function(payload_claims, _, value)
+  ForAudience = function(payload_claims, value)
     return claim_comparison(payload_claims, "aud", value)
   end,
-  IdentifiedBy = function(payload_claims, _, value)
+  IdentifiedBy = function(payload_claims, value)
     return claim_comparison(payload_claims, "jti", value)
   end,
-  IssuedBy = function(payload_claims, _, value)
+  IssuedBy = function(payload_claims, value)
     return claim_comparison(payload_claims, "iss", value)
   end,
-  Subject = function(payload_claims, _, value)
+  Subject = function(payload_claims, value)
     return claim_comparison(payload_claims, "sub", value)
+  end,
+  NotExpired = function(payload_claims, _)
+    local key = "exp"
+    if payload_claims[key] == nil then
+      return false, "Missing required claim '" .. key .."'"
+    elseif date(payload_claims[key]) <= date(os.time()) then
+      return false, "Token has expired"
+    end
+    return true
   end
 }
 
@@ -81,7 +91,7 @@ local function validate_claims(payload_claims, claim_rules)
 
   for key, value in pairs(claim_rules) do
     if registered_claims[key] ~= nil then
-      local valid, err = registered_claims[key](payload_claims, key, value)
+      local valid, err = registered_claims[key](payload_claims, value)
       if valid == false then
         return false, err
       end
