@@ -51,7 +51,7 @@ local function decode_json(data)
   return decoded
 end
 
-local function claim_comparison(payload_claims, key, value)
+local function validate_expected_value_claim(payload_claims, key, value)
   if payload_claims[key] == nil then
     return false, "Missing required claim '" .. key .."'"
   elseif payload_claims[key] ~= value then
@@ -60,27 +60,31 @@ local function claim_comparison(payload_claims, key, value)
   return true
 end
 
+local function validate_exp_claim(payload_claims)
+  local key = "exp"
+  if payload_claims[key] == nil then
+    return false, "Missing required claim '" .. key .."'"
+  elseif date(payload_claims[key]) < date(os.time()) then
+    return false, "Token has expired"
+  end
+  return true
+end
+
 local registered_claims = {
   ForAudience = function(payload_claims, value)
-    return claim_comparison(payload_claims, "aud", value)
+    return validate_expected_value_claim(payload_claims, "aud", value)
   end,
   IdentifiedBy = function(payload_claims, value)
-    return claim_comparison(payload_claims, "jti", value)
+    return validate_expected_value_claim(payload_claims, "jti", value)
   end,
   IssuedBy = function(payload_claims, value)
-    return claim_comparison(payload_claims, "iss", value)
+    return validate_expected_value_claim(payload_claims, "iss", value)
   end,
   Subject = function(payload_claims, value)
-    return claim_comparison(payload_claims, "sub", value)
+    return validate_expected_value_claim(payload_claims, "sub", value)
   end,
-  NotExpired = function(payload_claims, _)
-    local key = "exp"
-    if payload_claims[key] == nil then
-      return false, "Missing required claim '" .. key .."'"
-    elseif date(payload_claims[key]) <= date(os.time()) then
-      return false, "Token has expired"
-    end
-    return true
+  NotExpired = function(payload_claims)
+    return validate_exp_claim(payload_claims)
   end
 }
 
@@ -88,7 +92,6 @@ local function validate_claims(payload_claims, claim_rules)
   if type(claim_rules) ~= "table" then
     return false, "Invalid claim rules format"
   end
-
   for key, value in pairs(claim_rules) do
     if registered_claims[key] ~= nil then
       local valid, err = registered_claims[key](payload_claims, value)
@@ -96,13 +99,12 @@ local function validate_claims(payload_claims, claim_rules)
         return false, err
       end
     else
-      local valid, err = claim_comparison(payload_claims, key, value)
+      local valid, err = validate_expected_value_claim(payload_claims, key, value)
       if valid == false then
         return false, err
       end
     end
   end
-
   return true
 end
 
