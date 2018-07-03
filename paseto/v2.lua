@@ -50,6 +50,22 @@ local function decode_json(data)
   return decoded
 end
 
+local function validate_claims(payload_claims, claim_rules)
+  if type(claim_rules) ~= "table" then
+    return false, "Invalid claim rules format"
+  end
+
+  for key, value in pairs(claim_rules) do
+    if payload_claims[key] == nil then
+      return false, "Missing required claim '" .. key .."'"
+    elseif payload_claims[key] ~= value then
+      return false, "Claim '" .. key .."' does not match the expected value"
+    end
+  end
+
+  return true
+end
+
 -- API --
 
 v2.SYMMETRIC_KEY_BYTES = paseto.SYMMETRIC_KEY_BYTES
@@ -101,8 +117,8 @@ function v2.encrypt(key, payload_claims, footer_claims)
   return paseto.encrypt(key, payload, footer)
 end
 
-function v2.decrypt(key, token, footer)
-  local err, decrypted, payload_claims
+function v2.decrypt(key, token, claim_rules, footer)
+  local err, decrypted, payload_claims, valid
   decrypted, err = paseto.decrypt(key, token, footer)
   if decrypted == nil then
     return nil, err
@@ -110,6 +126,12 @@ function v2.decrypt(key, token, footer)
   payload_claims, err = decode_json(decrypted)
   if payload_claims == nil then
     return nil, err
+  end
+  if claim_rules ~= nil then
+    valid, err = validate_claims(payload_claims, claim_rules)
+    if valid == false then
+      return nil, err
+    end
   end
   return payload_claims
 end
@@ -131,8 +153,8 @@ function v2.sign(secret_key, payload_claims, footer_claims)
   return paseto.sign(secret_key, payload, footer)
 end
 
-function v2.verify(public_key, token, footer)
-  local err, verified_claims, payload_claims
+function v2.verify(public_key, token, claim_rules, footer)
+  local err, verified_claims, payload_claims, valid
   verified_claims, err = paseto.verify(public_key, token, footer)
   if verified_claims == nil then
     return nil, err
@@ -140,6 +162,12 @@ function v2.verify(public_key, token, footer)
   payload_claims, err = decode_json(verified_claims)
   if payload_claims == nil then
     return nil, err
+  end
+  if claim_rules ~= nil then
+    valid, err = validate_claims(payload_claims, claim_rules)
+    if valid == false then
+      return nil, err
+    end
   end
   return payload_claims
 end
