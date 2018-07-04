@@ -1,5 +1,5 @@
 local core = {
-  _VERSION     = 'paseto v0.3.0',
+  _VERSION     = 'paseto v0.4.0',
   _DESCRIPTION = 'PASETO (Platform-Agnostic Security Tokens) for Lua',
   _URL         = 'https://github.com/peter-evans/paseto-lua',
   _LICENSE     = [[
