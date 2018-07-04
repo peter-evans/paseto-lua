@@ -72,7 +72,7 @@ describe("v2 protocol standard API", function()
       payload_claims["iat"] = now:fmt("${iso}%z")
       payload_claims["nbf"] = now:fmt("${iso}%z")
       payload_claims["exp"] = now:addminutes(10):fmt("${iso}%z")
-      payload_claims["data"] = "this is a signed message"
+      payload_claims["data"] = "this is a secret message"
       payload_claims["myclaim"] = "validate this"
       footer_claims = { kid = "123456789" }
     end)
@@ -156,7 +156,7 @@ describe("v2 protocol standard API", function()
 
       it("should encrypt and decrypt payload claims successfully with claims validation", function()
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { data = "this is a signed message", myclaim = "validate this" }
+        local claim_rules = { data = "this is a secret message", myclaim = "validate this" }
         local decrypted_claims = paseto.decrypt(key, token, claim_rules)
         assert.equal("table", type(decrypted_claims))
         assert.equal(#payload_claims, #decrypted_claims)
@@ -172,7 +172,8 @@ describe("v2 protocol standard API", function()
           IssuedBy = "paragonie.com",
           Subject = "test",
           NotExpired = true,
-          ValidAt = true
+          ValidAt = true,
+          ContainsClaim = "data"
         }
         local decrypted_claims = paseto.decrypt(key, token, claim_rules)
         assert.equal("table", type(decrypted_claims))
@@ -190,7 +191,7 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Missing required claim 'required_claim''", function()
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { required_claim = "this is a signed message", myclaim = "validate this" }
+        local claim_rules = { required_claim = "this is a secret message", myclaim = "validate this" }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Missing required claim 'required_claim'", err)
@@ -198,7 +199,7 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Claim 'myclaim' does not match the expected value'", function()
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { data = "this is a signed message", myclaim = "invalid" }
+        local claim_rules = { data = "this is a secret message", myclaim = "invalid" }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Claim 'myclaim' does not match the expected value", err)
@@ -381,7 +382,8 @@ describe("v2 protocol standard API", function()
           IssuedBy = "paragonie.com",
           Subject = "test",
           NotExpired = true,
-          ValidAt = true
+          ValidAt = true,
+          ContainsClaim = "data"
         }
         local verified_claims = paseto.verify(public_key, token, claim_rules)
         assert.equal("table", type(verified_claims))
@@ -493,30 +495,50 @@ describe("v2 protocol standard API", function()
     describe("v2.local example", function()
 
       it("should encrypt and decrypt", function()
-        local key, payload_claims, token, footer_claims
-        local extracted_footer_claims, extracted_footer, decrypted_claims
-        payload_claims = {}
-        payload_claims["clientid"] = 100099
-        payload_claims["message"] = "secret"
+        local key, payload_claims, token, footer_claims, claim_rules
+        local extracted_footer_claims, extracted_footer, decrypted_claims, enforced_claims
+        payload_claims = {
+          iss = "paragonie.com",
+          jti = "87IFSGFgPNtQNNuw0AtuLttP",
+          aud = "some-audience.com",
+          sub = "test",
+          iat = "2018-01-01T00:00:00+00:00",
+          nbf = "2018-01-01T00:00:00+00:00",
+          exp = "2099-01-01T00:00:00+00:00",
+          data = "this is a secret message"
+        }
         footer_claims = { kid = "123456789" }
+        claim_rules = {
+          IssuedBy = "paragonie.com",
+          IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
+          ForAudience = "some-audience.com",
+          Subject = "test",
+          NotExpired = true,
+          ValidAt = true,
+          ContainsClaim = "data"
+        }
 
         -- generate symmetric key
         key = paseto.generate_symmetric_key()
 
-        -- encrypt/decrypt without footer
+        -- encrypt/decrypt without footer and without enforcing claim rules
         token = paseto.encrypt(key, payload_claims)
         decrypted_claims = paseto.decrypt(key, token)
         assert.equal(#payload_claims, #decrypted_claims)
         assert.equal(payload_claims.clientid, decrypted_claims.clientid)
         assert.equal(payload_claims.message, decrypted_claims.message)
 
-        -- encrypt/decrypt with footer
+        -- encrypt with footer
         token = paseto.encrypt(key, payload_claims, footer_claims)
         extracted_footer_claims, extracted_footer = paseto.extract_footer_claims(token)
         assert.equal(#footer_claims, #extracted_footer_claims)
         assert.equal(footer_claims.kid, extracted_footer_claims.kid)
+        -- decrypt without enforcing claim rules
         decrypted_claims = paseto.decrypt(key, token, nil, extracted_footer)
+        -- decrypt and enforce claim rules
+        enforced_claims = paseto.decrypt(key, token, claim_rules, extracted_footer)
         assert.equal(#payload_claims, #decrypted_claims)
+        assert.equal(#payload_claims, #enforced_claims)
         assert.equal(payload_claims.clientid, decrypted_claims.clientid)
         assert.equal(payload_claims.message, decrypted_claims.message)
       end)
@@ -526,30 +548,50 @@ describe("v2 protocol standard API", function()
     describe("v2.public example", function()
 
       it("should sign and verify", function()
-        local secret_key, public_key, payload_claims, token, footer_claims
-        local extracted_footer_claims, extracted_footer, verified_claims
-        payload_claims = {}
-        payload_claims["clientid"] = 100099
-        payload_claims["message"] = "secret"
+        local secret_key, public_key, payload_claims, token, footer_claims, claim_rules
+        local extracted_footer_claims, extracted_footer, verified_claims, enforced_claims
+        payload_claims = {
+          iss = "paragonie.com",
+          jti = "87IFSGFgPNtQNNuw0AtuLttP",
+          aud = "some-audience.com",
+          sub = "test",
+          iat = "2018-01-01T00:00:00+00:00",
+          nbf = "2018-01-01T00:00:00+00:00",
+          exp = "2099-01-01T00:00:00+00:00",
+          data = "this is a signed message"
+        }
         footer_claims = { kid = "123456789" }
+        claim_rules = {
+          IssuedBy = "paragonie.com",
+          IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
+          ForAudience = "some-audience.com",
+          Subject = "test",
+          NotExpired = true,
+          ValidAt = true,
+          ContainsClaim = "data"
+        }
 
         -- generate key pair
         secret_key, public_key = paseto.generate_asymmetric_secret_key()
 
-        -- sign/verify without footer
+        -- sign/verify without footer and without enforcing claim rules
         token = paseto.sign(secret_key, payload_claims)
         verified_claims = paseto.verify(public_key, token)
         assert.equal(#payload_claims, #verified_claims)
         assert.equal(payload_claims.clientid, verified_claims.clientid)
         assert.equal(payload_claims.message, verified_claims.message)
 
-        -- sign/verify with footer
+        -- sign with footer
         token = paseto.sign(secret_key, payload_claims, footer_claims)
         extracted_footer_claims, extracted_footer = paseto.extract_footer_claims(token)
         assert.equal(#footer_claims, #extracted_footer_claims)
         assert.equal(footer_claims.kid, extracted_footer_claims.kid)
+        -- verify without enforcing claim rules
         verified_claims = paseto.verify(public_key, token, nil, extracted_footer)
+        -- verify and enforce claim rules
+        enforced_claims = paseto.verify(public_key, token, claim_rules, extracted_footer)
         assert.equal(#payload_claims, #verified_claims)
+        assert.equal(#payload_claims, #enforced_claims)
         assert.equal(payload_claims.clientid, verified_claims.clientid)
         assert.equal(payload_claims.message, verified_claims.message)
       end)
