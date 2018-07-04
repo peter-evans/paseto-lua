@@ -82,14 +82,14 @@ payload_claims = {
 }
 footer_claims = { kid = "MDlCMUIwNzU4RTA2QzZFMDQ4" }
 claim_rules = {
-  IssuedBy = "paragonie.com",
-  IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
-  ForAudience = "some-audience.com",
-  Subject = "test",
-  NotExpired = true,
-  ValidAt = true,
-  ContainsClaim = "data",
-  myclaim = "required value"
+  claim_1 = { claim = "IssuedBy", value = "paragonie.com" },
+  claim_2 = { claim = "IdentifiedBy", value = "87IFSGFgPNtQNNuw0AtuLttP" },
+  claim_3 = { claim = "ForAudience", value = "some-audience.com" },
+  claim_4 = { claim = "Subject", value = "test" },
+  claim_5 = { claim = "NotExpired", value = "" },
+  claim_6 = { claim = "ValidAt", value = "" },
+  claim_7 = { claim = "ContainsClaim", value = "data" },
+  claim_8 = { claim = "myclaim", value = "required value" }
 }
 
 -- generate symmetric key
@@ -131,14 +131,14 @@ payload_claims = {
 }
 footer_claims = { kid = "MDlCMUIwNzU4RTA2QzZFMDQ4" }
 claim_rules = {
-  IssuedBy = "paragonie.com",
-  IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
-  ForAudience = "some-audience.com",
-  Subject = "test",
-  NotExpired = true,
-  ValidAt = true,
-  ContainsClaim = "data",
-  myclaim = "required value"
+  claim_1 = { claim = "IssuedBy", value = "paragonie.com" },
+  claim_2 = { claim = "IdentifiedBy", value = "87IFSGFgPNtQNNuw0AtuLttP" },
+  claim_3 = { claim = "ForAudience", value = "some-audience.com" },
+  claim_4 = { claim = "Subject", value = "test" },
+  claim_5 = { claim = "NotExpired", value = "" },
+  claim_6 = { claim = "ValidAt", value = "" },
+  claim_7 = { claim = "ContainsClaim", value = "data" },
+  claim_8 = { claim = "myclaim", value = "required value" }
 }
 
 -- generate key pair
