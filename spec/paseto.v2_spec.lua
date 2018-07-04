@@ -505,9 +505,10 @@ describe("v2 protocol standard API", function()
           iat = "2018-01-01T00:00:00+00:00",
           nbf = "2018-01-01T00:00:00+00:00",
           exp = "2099-01-01T00:00:00+00:00",
-          data = "this is a secret message"
+          data = "this is a secret message",
+          myclaim = "required value"
         }
-        footer_claims = { kid = "123456789" }
+        footer_claims = { kid = "MDlCMUIwNzU4RTA2QzZFMDQ4" }
         claim_rules = {
           IssuedBy = "paragonie.com",
           IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
@@ -515,7 +516,8 @@ describe("v2 protocol standard API", function()
           Subject = "test",
           NotExpired = true,
           ValidAt = true,
-          ContainsClaim = "data"
+          ContainsClaim = "data",
+          myclaim = "required value"
         }
 
         -- generate symmetric key
@@ -558,9 +560,10 @@ describe("v2 protocol standard API", function()
           iat = "2018-01-01T00:00:00+00:00",
           nbf = "2018-01-01T00:00:00+00:00",
           exp = "2099-01-01T00:00:00+00:00",
-          data = "this is a signed message"
+          data = "this is a signed message",
+          myclaim = "required value"
         }
-        footer_claims = { kid = "123456789" }
+        footer_claims = { kid = "MDlCMUIwNzU4RTA2QzZFMDQ4" }
         claim_rules = {
           IssuedBy = "paragonie.com",
           IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
@@ -568,7 +571,8 @@ describe("v2 protocol standard API", function()
           Subject = "test",
           NotExpired = true,
           ValidAt = true,
-          ContainsClaim = "data"
+          ContainsClaim = "data",
+          myclaim = "required value"
         }
 
         -- generate key pair
