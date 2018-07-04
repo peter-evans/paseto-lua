@@ -156,7 +156,10 @@ describe("v2 protocol standard API", function()
 
       it("should encrypt and decrypt payload claims successfully with claims validation", function()
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { data = "this is a secret message", myclaim = "validate this" }
+        local claim_rules = {
+          claim_1 = { claim = "data", value = "this is a secret message" },
+          claim_2 = { claim = "myclaim", value = "validate this" }
+        }
         local decrypted_claims = paseto.decrypt(key, token, claim_rules)
         assert.equal("table", type(decrypted_claims))
         assert.equal(#payload_claims, #decrypted_claims)
@@ -167,13 +170,13 @@ describe("v2 protocol standard API", function()
         payload_claims["exp"] = date(os.time()):addminutes(10):fmt("${iso}%z")
         local token = paseto.encrypt(key, payload_claims)
         local claim_rules = {
-          ForAudience = "some-audience.com",
-          IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
-          IssuedBy = "paragonie.com",
-          Subject = "test",
-          NotExpired = true,
-          ValidAt = true,
-          ContainsClaim = "data"
+          claim_1 = { claim = "IssuedBy", value = "paragonie.com" },
+          claim_2 = { claim = "IdentifiedBy", value = "87IFSGFgPNtQNNuw0AtuLttP" },
+          claim_3 = { claim = "ForAudience", value = "some-audience.com" },
+          claim_4 = { claim = "Subject", value = "test" },
+          claim_5 = { claim = "NotExpired", value = "" },
+          claim_6 = { claim = "ValidAt", value = "" },
+          claim_7 = { claim = "ContainsClaim", value = "data" }
         }
         local decrypted_claims = paseto.decrypt(key, token, claim_rules)
         assert.equal("table", type(decrypted_claims))
@@ -191,7 +194,10 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Missing required claim 'required_claim''", function()
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { required_claim = "this is a secret message", myclaim = "validate this" }
+        local claim_rules = {
+          claim_1 = { claim = "required_claim", value = "this is a secret message" },
+          claim_2 = { claim = "myclaim", value = "validate this" }
+        }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Missing required claim 'required_claim'", err)
@@ -199,7 +205,10 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Claim 'myclaim' does not match the expected value'", function()
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { data = "this is a secret message", myclaim = "invalid" }
+        local claim_rules = {
+          claim_1 = { claim = "data", value = "this is a secret message" },
+          claim_2 = { claim = "myclaim", value = "invalid" }
+        }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Claim 'myclaim' does not match the expected value", err)
@@ -207,7 +216,9 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Claim 'aud' does not match the expected value' when validating rule 'ForAudience'", function()
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { ForAudience = "some-other-audience.com" }
+        local claim_rules = {
+          claim_1 = { claim = "ForAudience", value = "some-other-audience.com" }
+        }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Claim 'aud' does not match the expected value", err)
@@ -215,7 +226,9 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Missing required claim 'exp''", function()
         local token = paseto.encrypt(key, {})
-        local claim_rules = { NotExpired = true }
+        local claim_rules = {
+          claim_1 = { claim = "NotExpired", value = "" }
+        }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Missing required claim 'exp'", err)
@@ -224,7 +237,9 @@ describe("v2 protocol standard API", function()
       it("should raise error 'Token has expired'", function()
         payload_claims["exp"] = date(os.time()):addseconds(-1):fmt("${iso}%z")
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { NotExpired = true }
+        local claim_rules = {
+          claim_1 = { claim = "NotExpired", value = "" }
+        }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Token has expired", err)
@@ -236,7 +251,9 @@ describe("v2 protocol standard API", function()
         payload_claims["nbf"] = future:fmt("${iso}%z")
         payload_claims["exp"] = future:fmt("${iso}%z")
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { ValidAt = true }
+        local claim_rules = {
+          claim_1 = { claim = "ValidAt", value = "" }
+        }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Token was issued in the future", err)
@@ -249,7 +266,9 @@ describe("v2 protocol standard API", function()
         payload_claims["nbf"] = future:fmt("${iso}%z")
         payload_claims["exp"] = future:fmt("${iso}%z")
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { ValidAt = true }
+        local claim_rules = {
+          claim_1 = { claim = "ValidAt", value = "" }
+        }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Token cannot be used yet", err)
@@ -262,7 +281,9 @@ describe("v2 protocol standard API", function()
         payload_claims["nbf"] = now:fmt("${iso}%z")
         payload_claims["exp"] = past:fmt("${iso}%z")
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { ValidAt = true }
+        local claim_rules = {
+          claim_1 = { claim = "ValidAt", value = "" }
+        }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Token has expired", err)
@@ -270,7 +291,9 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Missing required claim 'important_claim'", function()
         local token = paseto.encrypt(key, payload_claims)
-        local claim_rules = { ContainsClaim = "important_claim" }
+        local claim_rules = {
+          claim_1 = { claim = "ContainsClaim", value = "important_claim" }
+        }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Missing required claim 'important_claim'", err)
@@ -366,7 +389,10 @@ describe("v2 protocol standard API", function()
 
       it("should sign and verify payload claims successfully with claims validation", function()
         local token = paseto.sign(secret_key, payload_claims)
-        local claim_rules = { data = "this is a signed message", myclaim = "validate this" }
+        local claim_rules = {
+          claim_1 = { claim = "data", value = "this is a signed message" },
+          claim_2 = { claim = "myclaim", value = "validate this" }
+        }
         local verified_claims = paseto.verify(public_key, token, claim_rules)
         assert.equal("table", type(verified_claims))
         assert.equal(#payload_claims, #verified_claims)
@@ -377,13 +403,13 @@ describe("v2 protocol standard API", function()
         payload_claims["exp"] = date(os.time()):addminutes(10):fmt("${iso}%z")
         local token = paseto.sign(secret_key, payload_claims)
         local claim_rules = {
-          ForAudience = "some-audience.com",
-          IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
-          IssuedBy = "paragonie.com",
-          Subject = "test",
-          NotExpired = true,
-          ValidAt = true,
-          ContainsClaim = "data"
+          claim_1 = { claim = "IssuedBy", value = "paragonie.com" },
+          claim_2 = { claim = "IdentifiedBy", value = "87IFSGFgPNtQNNuw0AtuLttP" },
+          claim_3 = { claim = "ForAudience", value = "some-audience.com" },
+          claim_4 = { claim = "Subject", value = "test" },
+          claim_5 = { claim = "NotExpired", value = "" },
+          claim_6 = { claim = "ValidAt", value = "" },
+          claim_7 = { claim = "ContainsClaim", value = "data" }
         }
         local verified_claims = paseto.verify(public_key, token, claim_rules)
         assert.equal("table", type(verified_claims))
@@ -401,7 +427,10 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Missing required claim 'required_claim''", function()
         local token = paseto.sign(secret_key, payload_claims)
-        local claim_rules = { required_claim = "this is a signed message", myclaim = "validate this" }
+        local claim_rules = {
+          claim_1 = { claim = "required_claim", value = "this is a signed message" },
+          claim_2 = { claim = "myclaim", value = "validate this" }
+        }
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Missing required claim 'required_claim'", err)
@@ -409,7 +438,10 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Claim 'myclaim' does not match the expected value'", function()
         local token = paseto.sign(secret_key, payload_claims)
-        local claim_rules = { data = "this is a signed message", myclaim = "invalid" }
+        local claim_rules = {
+          claim_1 = { claim = "data", value = "this is a signed message" },
+          claim_2 = { claim = "myclaim", value = "invalid" }
+        }
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Claim 'myclaim' does not match the expected value", err)
@@ -417,7 +449,9 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Claim 'aud' does not match the expected value' when validating rule 'ForAudience'", function()
         local token = paseto.sign(secret_key, payload_claims)
-        local claim_rules = { ForAudience = "some-other-audience.com" }
+        local claim_rules = {
+          claim_1 = { claim = "ForAudience", value = "some-other-audience.com" }
+        }
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Claim 'aud' does not match the expected value", err)
@@ -425,7 +459,9 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Missing required claim 'exp''", function()
         local token = paseto.sign(secret_key, {})
-        local claim_rules = { NotExpired = true }
+        local claim_rules = {
+          claim_1 = { claim = "NotExpired", value = "" }
+        }
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Missing required claim 'exp'", err)
@@ -434,7 +470,9 @@ describe("v2 protocol standard API", function()
       it("should raise error 'Token has expired'", function()
         payload_claims["exp"] = date(os.time()):addseconds(-1):fmt("${iso}%z")
         local token = paseto.sign(secret_key, payload_claims)
-        local claim_rules = { NotExpired = true }
+        local claim_rules = {
+          claim_1 = { claim = "NotExpired", value = "" }
+        }
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Token has expired", err)
@@ -446,7 +484,9 @@ describe("v2 protocol standard API", function()
         payload_claims["nbf"] = future:fmt("${iso}%z")
         payload_claims["exp"] = future:fmt("${iso}%z")
         local token = paseto.sign(secret_key, payload_claims)
-        local claim_rules = { ValidAt = true }
+        local claim_rules = {
+          claim_1 = { claim = "ValidAt", value = "" }
+        }
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Token was issued in the future", err)
@@ -459,7 +499,9 @@ describe("v2 protocol standard API", function()
         payload_claims["nbf"] = future:fmt("${iso}%z")
         payload_claims["exp"] = future:fmt("${iso}%z")
         local token = paseto.sign(secret_key, payload_claims)
-        local claim_rules = { ValidAt = true }
+        local claim_rules = {
+          claim_1 = { claim = "ValidAt", value = "" }
+        }
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Token cannot be used yet", err)
@@ -472,7 +514,9 @@ describe("v2 protocol standard API", function()
         payload_claims["nbf"] = now:fmt("${iso}%z")
         payload_claims["exp"] = past:fmt("${iso}%z")
         local token = paseto.sign(secret_key, payload_claims)
-        local claim_rules = { ValidAt = true }
+        local claim_rules = {
+          claim_1 = { claim = "ValidAt", value = "" }
+        }
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Token has expired", err)
@@ -480,7 +524,9 @@ describe("v2 protocol standard API", function()
 
       it("should raise error 'Missing required claim 'important_claim'", function()
         local token = paseto.sign(secret_key, payload_claims)
-        local claim_rules = { ContainsClaim = "important_claim" }
+        local claim_rules = {
+          claim_1 = { claim = "ContainsClaim", value = "important_claim" }
+        }
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Missing required claim 'important_claim'", err)
@@ -510,14 +556,14 @@ describe("v2 protocol standard API", function()
         }
         footer_claims = { kid = "MDlCMUIwNzU4RTA2QzZFMDQ4" }
         claim_rules = {
-          IssuedBy = "paragonie.com",
-          IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
-          ForAudience = "some-audience.com",
-          Subject = "test",
-          NotExpired = true,
-          ValidAt = true,
-          ContainsClaim = "data",
-          myclaim = "required value"
+          claim_1 = { claim = "IssuedBy", value = "paragonie.com" },
+          claim_2 = { claim = "IdentifiedBy", value = "87IFSGFgPNtQNNuw0AtuLttP" },
+          claim_3 = { claim = "ForAudience", value = "some-audience.com" },
+          claim_4 = { claim = "Subject", value = "test" },
+          claim_5 = { claim = "NotExpired", value = "" },
+          claim_6 = { claim = "ValidAt", value = "" },
+          claim_7 = { claim = "ContainsClaim", value = "data" },
+          claim_8 = { claim = "myclaim", value = "required value" }
         }
 
         -- generate symmetric key
@@ -566,14 +612,14 @@ describe("v2 protocol standard API", function()
         }
         footer_claims = { kid = "MDlCMUIwNzU4RTA2QzZFMDQ4" }
         claim_rules = {
-          IssuedBy = "paragonie.com",
-          IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
-          ForAudience = "some-audience.com",
-          Subject = "test",
-          NotExpired = true,
-          ValidAt = true,
-          ContainsClaim = "data",
-          myclaim = "required value"
+          claim_1 = { claim = "IssuedBy", value = "paragonie.com" },
+          claim_2 = { claim = "IdentifiedBy", value = "87IFSGFgPNtQNNuw0AtuLttP" },
+          claim_3 = { claim = "ForAudience", value = "some-audience.com" },
+          claim_4 = { claim = "Subject", value = "test" },
+          claim_5 = { claim = "NotExpired", value = "" },
+          claim_6 = { claim = "ValidAt", value = "" },
+          claim_7 = { claim = "ContainsClaim", value = "data" },
+          claim_8 = { claim = "myclaim", value = "required value" }
         }
 
         -- generate key pair

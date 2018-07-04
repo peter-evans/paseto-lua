@@ -149,14 +149,14 @@ local function validate_claims(payload_claims, claim_rules)
   if type(claim_rules) ~= "table" then
     return false, "Invalid claim rules format"
   end
-  for key, value in pairs(claim_rules) do
-    if registered_claims[key] ~= nil then
-      local valid, err = registered_claims[key](payload_claims, value)
+  for _, rule in pairs(claim_rules) do
+    if registered_claims[rule.claim] ~= nil then
+      local valid, err = registered_claims[rule.claim](payload_claims, rule.value)
       if valid == false then
         return false, err
       end
     else
-      local matches, err = claim_matches_expected_value(payload_claims, key, value)
+      local matches, err = claim_matches_expected_value(payload_claims, rule.claim, rule.value)
       if matches == false then
         return false, err
       end
