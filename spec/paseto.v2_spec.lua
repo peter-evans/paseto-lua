@@ -532,6 +532,7 @@ describe("v2 protocol standard API", function()
 
         -- encrypt with footer
         token = paseto.encrypt(key, payload_claims, footer_claims)
+        -- extract footer claims (e.g. to determine public key from kid claim)
         extracted_footer_claims, extracted_footer = paseto.extract_footer_claims(token)
         assert.equal(#footer_claims, #extracted_footer_claims)
         assert.equal(footer_claims.kid, extracted_footer_claims.kid)
@@ -587,6 +588,7 @@ describe("v2 protocol standard API", function()
 
         -- sign with footer
         token = paseto.sign(secret_key, payload_claims, footer_claims)
+        -- extract footer claims (e.g. to determine public key from kid claim)
         extracted_footer_claims, extracted_footer = paseto.extract_footer_claims(token)
         assert.equal(#footer_claims, #extracted_footer_claims)
         assert.equal(footer_claims.kid, extracted_footer_claims.kid)
