@@ -21,9 +21,10 @@ This implementation doesn't support the v1 protocol. Please note that v1 should 
 - [x] v2 local authentication (Blake2b and XChaCha20-Poly1305)
 - [x] v2 public authentication (Ed25519 signatures)
 - [x] JSON payload and footer processing
-- [ ] Claims validation
-- [ ] Integrated key ID (kid) support
+- [x] Registered claims validation
+- [x] Custom claims validation
 - [ ] High-level token builder API
+- [ ] Integrated key ID (kid) support
 - [ ] API documentation
 
 ## Installation
@@ -66,48 +67,98 @@ __v2.local__ :
 ```
 local paseto = require "paseto.v2"
 
-local key, payload_claims, token, footer_claims
-local extracted_footer_claims, extracted_footer, decrypted_claims
-payload_claims = {}
-payload_claims["clientid"] = 100099
-payload_claims["message"] = "secret"
-footer_claims = { kid = "123456789" }
+local key, payload_claims, token, footer_claims, claim_rules
+local extracted_footer_claims, extracted_footer, decrypted_claims, enforced_claims
+payload_claims = {
+  iss = "paragonie.com",
+  jti = "87IFSGFgPNtQNNuw0AtuLttP",
+  aud = "some-audience.com",
+  sub = "test",
+  iat = "2018-01-01T00:00:00+00:00",
+  nbf = "2018-01-01T00:00:00+00:00",
+  exp = "2099-01-01T00:00:00+00:00",
+  data = "this is a secret message",
+  myclaim = "required value"
+}
+footer_claims = { kid = "MDlCMUIwNzU4RTA2QzZFMDQ4" }
+claim_rules = {
+  IssuedBy = "paragonie.com",
+  IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
+  ForAudience = "some-audience.com",
+  Subject = "test",
+  NotExpired = true,
+  ValidAt = true,
+  ContainsClaim = "data",
+  myclaim = "required value"
+}
 
 -- generate symmetric key
 key = paseto.generate_symmetric_key()
 
--- encrypt/decrypt without footer
+-- encrypt/decrypt without footer and without enforcing claim rules
 token = paseto.encrypt(key, payload_claims)
 decrypted_claims = paseto.decrypt(key, token)
 
--- encrypt/decrypt with footer
+-- encrypt with footer
 token = paseto.encrypt(key, payload_claims, footer_claims)
+
+-- extract footer claims (e.g. to determine public key from kid claim)
 extracted_footer_claims, extracted_footer = paseto.extract_footer_claims(token)
-decrypted_claims = paseto.decrypt(key, token, extracted_footer)
+
+-- decrypt without enforcing claim rules
+decrypted_claims = paseto.decrypt(key, token, nil, extracted_footer)
+
+-- decrypt and enforce claim rules
+enforced_claims = paseto.decrypt(key, token, claim_rules, extracted_footer)
 ```
 
 __v2.public__ :
 ```
 local paseto = require "paseto.v2"
 
-local secret_key, public_key, payload_claims, token, footer_claims
-local extracted_footer_claims, extracted_footer, verified_claims
-payload_claims = {}
-payload_claims["clientid"] = 100099
-payload_claims["message"] = "secret"
-footer_claims = { kid = "123456789" }
+local secret_key, public_key, payload_claims, token, footer_claims, claim_rules
+local extracted_footer_claims, extracted_footer, verified_claims, enforced_claims
+payload_claims = {
+  iss = "paragonie.com",
+  jti = "87IFSGFgPNtQNNuw0AtuLttP",
+  aud = "some-audience.com",
+  sub = "test",
+  iat = "2018-01-01T00:00:00+00:00",
+  nbf = "2018-01-01T00:00:00+00:00",
+  exp = "2099-01-01T00:00:00+00:00",
+  data = "this is a signed message",
+  myclaim = "required value"
+}
+footer_claims = { kid = "MDlCMUIwNzU4RTA2QzZFMDQ4" }
+claim_rules = {
+  IssuedBy = "paragonie.com",
+  IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
+  ForAudience = "some-audience.com",
+  Subject = "test",
+  NotExpired = true,
+  ValidAt = true,
+  ContainsClaim = "data",
+  myclaim = "required value"
+}
 
 -- generate key pair
 secret_key, public_key = paseto.generate_asymmetric_secret_key()
 
--- sign/verify without footer
+-- sign/verify without footer and without enforcing claim rules
 token = paseto.sign(secret_key, payload_claims)
 verified_claims = paseto.verify(public_key, token)
 
--- sign/verify with footer
+-- sign with footer
 token = paseto.sign(secret_key, payload_claims, footer_claims)
+
+-- extract footer claims (e.g. to determine public key from kid claim)
 extracted_footer_claims, extracted_footer = paseto.extract_footer_claims(token)
-verified_claims = paseto.verify(public_key, token, extracted_footer)
+
+-- verify without enforcing claim rules
+verified_claims = paseto.verify(public_key, token, nil, extracted_footer)
+
+-- verify and enforce claim rules
+enforced_claims = paseto.verify(public_key, token, claim_rules, extracted_footer)
 ```
 
 #### Core API

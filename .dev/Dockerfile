@@ -13,6 +13,7 @@ RUN apt-get -y update \
  && luarocks install basexx \
  && luarocks install lua-struct \
  && luarocks install lua-cjson 2.1.0 \
+ && luarocks install date \
  && luarocks install busted \
  && luarocks install luacheck \
  && luarocks install luacov
