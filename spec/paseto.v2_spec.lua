@@ -62,13 +62,16 @@ describe("v2 protocol standard API", function()
     local key, payload_claims, footer_claims
 
     setup(function()
+      local now = date(os.time())
       key = paseto.generate_symmetric_key()
       payload_claims = {}
       payload_claims["iss"] = "paragonie.com"
       payload_claims["jti"] = "87IFSGFgPNtQNNuw0AtuLttP"
       payload_claims["aud"] = "some-audience.com"
       payload_claims["sub"] = "test"
-      payload_claims["exp"] = date(os.time()):addminutes(10):fmt("${iso}%z")
+      payload_claims["iat"] = now:fmt("${iso}%z")
+      payload_claims["nbf"] = now:fmt("${iso}%z")
+      payload_claims["exp"] = now:addminutes(10):fmt("${iso}%z")
       payload_claims["data"] = "this is a signed message"
       payload_claims["myclaim"] = "validate this"
       footer_claims = { kid = "123456789" }
@@ -161,14 +164,15 @@ describe("v2 protocol standard API", function()
       end)
 
       it("should encrypt and decrypt payload claims successfully with registered claims validation", function()
-        payload_claims["exp"] = date(os.time()):addminutes(1):fmt("${iso}%z")
+        payload_claims["exp"] = date(os.time()):addminutes(10):fmt("${iso}%z")
         local token = paseto.encrypt(key, payload_claims)
         local claim_rules = {
           ForAudience = "some-audience.com",
           IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
           IssuedBy = "paragonie.com",
           Subject = "test",
-          NotExpired = true
+          NotExpired = true,
+          ValidAt = true
         }
         local decrypted_claims = paseto.decrypt(key, token, claim_rules)
         assert.equal("table", type(decrypted_claims))
@@ -216,13 +220,59 @@ describe("v2 protocol standard API", function()
         assert.equal("Missing required claim 'exp'", err)
       end)
 
-      it("should raise error 'Token expired'", function()
+      it("should raise error 'Token has expired'", function()
         payload_claims["exp"] = date(os.time()):addseconds(-1):fmt("${iso}%z")
         local token = paseto.encrypt(key, payload_claims)
         local claim_rules = { NotExpired = true }
         local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
         assert.equal(nil, decrypted_claims)
         assert.equal("Token has expired", err)
+      end)
+
+      it("should raise error 'Token was issued in the future'", function()
+        local future = date(os.time()):addminutes(10)
+        payload_claims["iat"] = future:fmt("${iso}%z")
+        payload_claims["nbf"] = future:fmt("${iso}%z")
+        payload_claims["exp"] = future:fmt("${iso}%z")
+        local token = paseto.encrypt(key, payload_claims)
+        local claim_rules = { ValidAt = true }
+        local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
+        assert.equal(nil, decrypted_claims)
+        assert.equal("Token was issued in the future", err)
+      end)
+
+      it("should raise error 'Token cannot be used yet'", function()
+        local now = date(os.time())
+        local future = date(os.time()):addminutes(10)
+        payload_claims["iat"] = now:fmt("${iso}%z")
+        payload_claims["nbf"] = future:fmt("${iso}%z")
+        payload_claims["exp"] = future:fmt("${iso}%z")
+        local token = paseto.encrypt(key, payload_claims)
+        local claim_rules = { ValidAt = true }
+        local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
+        assert.equal(nil, decrypted_claims)
+        assert.equal("Token cannot be used yet", err)
+      end)
+
+      it("should raise error 'Token has expired'", function()
+        local now = date(os.time())
+        local past = date(os.time()):addminutes(-10)
+        payload_claims["iat"] = now:fmt("${iso}%z")
+        payload_claims["nbf"] = now:fmt("${iso}%z")
+        payload_claims["exp"] = past:fmt("${iso}%z")
+        local token = paseto.encrypt(key, payload_claims)
+        local claim_rules = { ValidAt = true }
+        local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
+        assert.equal(nil, decrypted_claims)
+        assert.equal("Token has expired", err)
+      end)
+
+      it("should raise error 'Missing required claim 'important_claim'", function()
+        local token = paseto.encrypt(key, payload_claims)
+        local claim_rules = { ContainsClaim = "important_claim" }
+        local decrypted_claims, err = paseto.decrypt(key, token, claim_rules)
+        assert.equal(nil, decrypted_claims)
+        assert.equal("Missing required claim 'important_claim'", err)
       end)
 
     end)
@@ -234,13 +284,16 @@ describe("v2 protocol standard API", function()
     local secret_key, public_key, payload_claims, footer_claims
 
     setup(function()
+      local now = date(os.time())
       secret_key, public_key = paseto.generate_asymmetric_secret_key()
       payload_claims = {}
       payload_claims["iss"] = "paragonie.com"
       payload_claims["jti"] = "87IFSGFgPNtQNNuw0AtuLttP"
       payload_claims["aud"] = "some-audience.com"
       payload_claims["sub"] = "test"
-      payload_claims["exp"] = date(os.time()):addminutes(10):fmt("${iso}%z")
+      payload_claims["iat"] = now:fmt("${iso}%z")
+      payload_claims["nbf"] = now:fmt("${iso}%z")
+      payload_claims["exp"] = now:addminutes(10):fmt("${iso}%z")
       payload_claims["data"] = "this is a signed message"
       payload_claims["myclaim"] = "validate this"
       footer_claims = { kid = "123456789" }
@@ -320,14 +373,15 @@ describe("v2 protocol standard API", function()
       end)
 
       it("should encrypt and decrypt payload claims successfully with registered claims validation", function()
-        payload_claims["exp"] = date(os.time()):addminutes(1):fmt("${iso}%z")
+        payload_claims["exp"] = date(os.time()):addminutes(10):fmt("${iso}%z")
         local token = paseto.sign(secret_key, payload_claims)
         local claim_rules = {
           ForAudience = "some-audience.com",
           IdentifiedBy = "87IFSGFgPNtQNNuw0AtuLttP",
           IssuedBy = "paragonie.com",
           Subject = "test",
-          NotExpired = true
+          NotExpired = true,
+          ValidAt = true
         }
         local verified_claims = paseto.verify(public_key, token, claim_rules)
         assert.equal("table", type(verified_claims))
@@ -375,13 +429,59 @@ describe("v2 protocol standard API", function()
         assert.equal("Missing required claim 'exp'", err)
       end)
 
-      it("should raise error 'Token expired'", function()
+      it("should raise error 'Token has expired'", function()
         payload_claims["exp"] = date(os.time()):addseconds(-1):fmt("${iso}%z")
         local token = paseto.sign(secret_key, payload_claims)
         local claim_rules = { NotExpired = true }
         local verified_claims, err = paseto.verify(public_key, token, claim_rules)
         assert.equal(nil, verified_claims)
         assert.equal("Token has expired", err)
+      end)
+
+      it("should raise error 'Token was issued in the future'", function()
+        local future = date(os.time()):addminutes(10)
+        payload_claims["iat"] = future:fmt("${iso}%z")
+        payload_claims["nbf"] = future:fmt("${iso}%z")
+        payload_claims["exp"] = future:fmt("${iso}%z")
+        local token = paseto.sign(secret_key, payload_claims)
+        local claim_rules = { ValidAt = true }
+        local verified_claims, err = paseto.verify(public_key, token, claim_rules)
+        assert.equal(nil, verified_claims)
+        assert.equal("Token was issued in the future", err)
+      end)
+
+      it("should raise error 'Token cannot be used yet'", function()
+        local now = date(os.time())
+        local future = date(os.time()):addminutes(10)
+        payload_claims["iat"] = now:fmt("${iso}%z")
+        payload_claims["nbf"] = future:fmt("${iso}%z")
+        payload_claims["exp"] = future:fmt("${iso}%z")
+        local token = paseto.sign(secret_key, payload_claims)
+        local claim_rules = { ValidAt = true }
+        local verified_claims, err = paseto.verify(public_key, token, claim_rules)
+        assert.equal(nil, verified_claims)
+        assert.equal("Token cannot be used yet", err)
+      end)
+
+      it("should raise error 'Token has expired'", function()
+        local now = date(os.time())
+        local past = date(os.time()):addminutes(-10)
+        payload_claims["iat"] = now:fmt("${iso}%z")
+        payload_claims["nbf"] = now:fmt("${iso}%z")
+        payload_claims["exp"] = past:fmt("${iso}%z")
+        local token = paseto.sign(secret_key, payload_claims)
+        local claim_rules = { ValidAt = true }
+        local verified_claims, err = paseto.verify(public_key, token, claim_rules)
+        assert.equal(nil, verified_claims)
+        assert.equal("Token has expired", err)
+      end)
+
+      it("should raise error 'Missing required claim 'important_claim'", function()
+        local token = paseto.sign(secret_key, payload_claims)
+        local claim_rules = { ContainsClaim = "important_claim" }
+        local verified_claims, err = paseto.verify(public_key, token, claim_rules)
+        assert.equal(nil, verified_claims)
+        assert.equal("Missing required claim 'important_claim'", err)
       end)
 
     end)

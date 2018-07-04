@@ -51,40 +51,97 @@ local function decode_json(data)
   return decoded
 end
 
-local function validate_expected_value_claim(payload_claims, key, value)
+local function required_claim_exists(payload_claims, key)
   if payload_claims[key] == nil then
     return false, "Missing required claim '" .. key .."'"
-  elseif payload_claims[key] ~= value then
+  end
+  return true
+end
+
+local function claim_matches_expected_value(payload_claims, key, value)
+  local exists, err = required_claim_exists(payload_claims, key)
+  if exists == false then
+    return false, err
+  end
+  if payload_claims[key] ~= value then
     return false, "Claim '" .. key .."' does not match the expected value"
   end
   return true
 end
 
-local function validate_exp_claim(payload_claims)
+local function claim_exp_is_valid(payload_claims)
   local key = "exp"
-  if payload_claims[key] == nil then
-    return false, "Missing required claim '" .. key .."'"
-  elseif date(payload_claims[key]) < date(os.time()) then
+  local exists, err = required_claim_exists(payload_claims, key)
+  if exists == false then
+    return false, err
+  end
+  if date(payload_claims[key]) < date(os.time()) then
     return false, "Token has expired"
+  end
+  return true
+end
+
+local function claim_iat_is_valid(payload_claims)
+  local key = "iat"
+  local exists, err = required_claim_exists(payload_claims, key)
+  if exists == false then
+    return false, err
+  end
+  if date(payload_claims[key]) > date(os.time()) then
+    return false, "Token was issued in the future"
+  end
+  return true
+end
+
+local function claim_nbf_is_valid(payload_claims)
+  local key = "nbf"
+  local exists, err = required_claim_exists(payload_claims, key)
+  if exists == false then
+    return false, err
+  end
+  if date(payload_claims[key]) > date(os.time()) then
+    return false, "Token cannot be used yet"
   end
   return true
 end
 
 local registered_claims = {
   ForAudience = function(payload_claims, value)
-    return validate_expected_value_claim(payload_claims, "aud", value)
+    return claim_matches_expected_value(payload_claims, "aud", value)
   end,
   IdentifiedBy = function(payload_claims, value)
-    return validate_expected_value_claim(payload_claims, "jti", value)
+    return claim_matches_expected_value(payload_claims, "jti", value)
   end,
   IssuedBy = function(payload_claims, value)
-    return validate_expected_value_claim(payload_claims, "iss", value)
+    return claim_matches_expected_value(payload_claims, "iss", value)
   end,
   Subject = function(payload_claims, value)
-    return validate_expected_value_claim(payload_claims, "sub", value)
+    return claim_matches_expected_value(payload_claims, "sub", value)
   end,
   NotExpired = function(payload_claims)
-    return validate_exp_claim(payload_claims)
+    return claim_exp_is_valid(payload_claims)
+  end,
+  ValidAt = function(payload_claims)
+    local valid, err
+    valid, err = claim_iat_is_valid(payload_claims)
+    if valid == false then
+      return false, err
+    end
+    valid, err = claim_nbf_is_valid(payload_claims)
+    if valid == false then
+      return false, err
+    end
+    valid, err = claim_exp_is_valid(payload_claims)
+    if valid == false then
+      return false, err
+    end
+  end,
+  ContainsClaim = function(payload_claims, value)
+    local exists, err = required_claim_exists(payload_claims, value)
+    if exists == false then
+      return false, err
+    end
+    return true
   end
 }
 
@@ -99,8 +156,8 @@ local function validate_claims(payload_claims, claim_rules)
         return false, err
       end
     else
-      local valid, err = validate_expected_value_claim(payload_claims, key, value)
-      if valid == false then
+      local matches, err = claim_matches_expected_value(payload_claims, key, value)
+      if matches == false then
         return false, err
       end
     end
