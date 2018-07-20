@@ -387,7 +387,7 @@ describe("v2 protocol core", function()
 
       it("should sign and verify", function()
         local secret_key, public_key, message, token, footer, extracted_footer, verified
-        message = "my secret message"
+        message = "my signed message"
         footer = "my footer"
 
         -- generate key pair

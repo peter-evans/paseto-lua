@@ -190,7 +190,7 @@ __v2.public__ :
 local paseto = require "paseto.v2.core"
 
 local secret_key, public_key, message, token, footer, extracted_footer, verified
-message = "my secret message"
+message = "my signed message"
 footer = "my footer"
 
 -- generate key pair
