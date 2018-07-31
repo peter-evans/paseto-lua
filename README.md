@@ -64,7 +64,7 @@ luarocks install paseto
 ## Usage
 
 __v2.local__ :
-```
+```lua
 local paseto = require "paseto.v2"
 
 local key, payload_claims, token, footer_claims, claim_rules
@@ -113,7 +113,7 @@ enforced_claims = paseto.decrypt(key, token, claim_rules, extracted_footer)
 ```
 
 __v2.public__ :
-```
+```lua
 local paseto = require "paseto.v2"
 
 local secret_key, public_key, payload_claims, token, footer_claims, claim_rules
@@ -165,7 +165,7 @@ enforced_claims = paseto.verify(public_key, token, claim_rules, extracted_footer
 This low-level API should only be used when you cannot use JSON for payload claims and footer claims.
 
 __v2.local__ :
-```
+```lua
 local paseto = require "paseto.v2.core"
 
 local key, message, token, footer, extracted_footer, decrypted
@@ -186,7 +186,7 @@ decrypted = paseto.decrypt(key, token, extracted_footer)
 ```
 
 __v2.public__ :
-```
+```lua
 local paseto = require "paseto.v2.core"
 
 local secret_key, public_key, message, token, footer, extracted_footer, verified
