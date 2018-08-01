@@ -18,6 +18,7 @@ Paseto (Platform-Agnostic SEcurity TOkens) is a specification and reference impl
 This implementation doesn't support the v1 protocol. Please note that v1 should only be used by legacy systems that cannot use modern cryptography.
 
 #### Roadmap
+
 - [x] v2 local authentication (Blake2b and XChaCha20-Poly1305)
 - [x] v2 public authentication (Ed25519 signatures)
 - [x] JSON payload and footer processing
@@ -56,6 +57,7 @@ Additionally, if using Lua 5.3 you need to build Lua with a compatibility flag f
 See [.travis.yml](.travis.yml) for build configurations.
 
 #### PASETO
+
 Finally, install PASETO:
 ```
 luarocks install paseto
