@@ -1,4 +1,4 @@
-# [PASETO](https://github.com/paragonie/paseto) (Platform-Agnostic Security Tokens) for Lua
+# [PASETO](https://paseto.io/) (Platform-Agnostic Security Tokens) for Lua
 [![luarocks](https://img.shields.io/badge/luarocks-paseto-blue.svg)](https://luarocks.org/modules/peterevans/paseto)
 [![Build Status](https://travis-ci.org/peter-evans/paseto-lua.svg?branch=master)](https://travis-ci.org/peter-evans/paseto-lua)
 [![Coverage Status](https://coveralls.io/repos/github/peter-evans/paseto-lua/badge.svg?branch=master)](https://coveralls.io/github/peter-evans/paseto-lua?branch=master)
@@ -7,7 +7,7 @@ Paseto (Platform-Agnostic SEcurity TOkens) is a specification and reference impl
 
 >__*"Paseto is everything you love about JOSE (JWT, JWE, JWS) without any of the [many design deficits that plague the JOSE standards](https://paragonie.com/blog/2017/03/jwt-json-web-tokens-is-bad-standard-that-everyone-should-avoid)."*__
 
-— [https://github.com/paragonie/paseto](https://github.com/paragonie/paseto)
+— [paragonie/paseto](https://github.com/paragonie/paseto)
 
 ## Feature Support
 
