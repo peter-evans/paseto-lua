@@ -33,8 +33,7 @@ This implementation doesn't support the v1 protocol. Please note that v1 should 
 #### Sodium Crypto Library
 
 This Lua module depends on the [Sodium crypto library (libsodium)](https://github.com/jedisct1/libsodium).
-The following is a convenient way to install libsodium via LuaRocks.
-I don't necessarily recommend this for production use. Please see [libsodium's documentation](https://download.libsodium.org/doc/installation/) for full installation instructions.
+The following is a convenient way to install libsodium via LuaRocks. Alternatively, see [libsodium's documentation](https://download.libsodium.org/doc/installation/) for full installation instructions.
 ```
 luarocks install libsodium
 ```
